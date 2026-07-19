@@ -5,9 +5,10 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 function createPrismaClient() {
   let url = (process.env.DATABASE_URL || '').replace(/^\ufeff/, '')
+  const authToken = (process.env.DATABASE_AUTH_TOKEN || '').replace(/^\ufeff/, '')
 
   if (url.startsWith('libsql://')) {
-    const adapter = new PrismaLibSql({ url, authToken: process.env.DATABASE_AUTH_TOKEN })
+    const adapter = new PrismaLibSql({ url, authToken })
     return new PrismaClient({ adapter })
   }
 
