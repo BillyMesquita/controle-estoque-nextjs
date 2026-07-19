@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("Operador")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  movements  StockMovement[]
+  invoices   Invoice[]
+  auditLogs  AuditLog[]
+
+  @@map("users")
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  sku           String   @unique
+  name          String
+  description   String?
+  categoryId    String   @map("category_id")
+  category      Category @relation(fields: [categoryId], references: [id])
+  supplierId    String?  @map("supplier_id")
+  supplier      Supplier? @relation(fields: [supplierId], references: [id])
+  unitCost      Float    @default(0) @map("unit_cost")
+  salePrice     Float    @default(0) @map("sale_price")
+  currentStock  Float    @default(0) @map("current_stock")
+  minStockLevel Float    @default(0) @map("min_stock_level")
+  unit          String   @default("UN")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  movements    StockMovement[]
+  invoiceItems InvoiceItem[]
+
+  @@index([categoryId])
+  @@index([supplierId])
+  @@map("products")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Supplier {
+  id          String   @id @default(uuid())
+  name        String
+  document    String?
+  contact     String?
+  phone       String?
+  email       String?
+  address     String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+  invoices Invoice[]
+
+  @@map("suppliers")
+}
+
+model StockMovement {
+  id            String   @id @default(uuid())
+  productId     String   @map("product_id")
+  product       Product  @relation(fields: [productId], references: [id])
+  type          String
+  quantity      Float
+  unitCost      Float    @default(0) @map("unit_cost")
+  unitPrice     Float    @default(0) @map("unit_price")
+  description   String?
+  referenceId   String?  @map("reference_id")
+  referenceType String?  @map("reference_type")
+  movedBy       String   @map("moved_by")
+  movedByUser   User     @relation(fields: [movedBy], references: [id])
+  movedAt       DateTime @default(now()) @map("moved_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  @@index([productId])
+  @@index([type])
+  @@index([movedAt])
+  @@map("stock_movements")
+}
+
+model Invoice {
+  id               String   @id @default(uuid())
+  invoiceNumber    String   @map("invoice_number")
+  invoiceType      String   @map("invoice_type")
+  supplierId       String?  @map("supplier_id")
+  supplier         Supplier? @relation(fields: [supplierId], references: [id])
+  customerName     String?  @map("customer_name")
+  customerDocument String?  @map("customer_document")
+  totalAmount      Float    @default(0) @map("total_amount")
+  taxAmount        Float    @default(0) @map("tax_amount")
+  paymentStatus    String   @default("Pendente") @map("payment_status")
+  status           String   @default("Registrada")
+  issuedDate       DateTime @map("issued_date")
+  dueDate          DateTime? @map("due_date")
+  paidAt           DateTime? @map("paid_at")
+  notes            String?
+  registeredBy     String   @map("registered_by")
+  registeredByUser User     @relation(fields: [registeredBy], references: [id])
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  items InvoiceItem[]
+
+  @@unique([invoiceNumber, invoiceType])
+  @@index([supplierId])
+  @@index([paymentStatus])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id        String   @id @default(uuid())
+  invoiceId String   @map("invoice_id")
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId String   @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Float
+  unitCost  Float    @map("unit_cost")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([invoiceId])
+  @@index([productId])
+  @@map("invoice_items")
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  user           User     @relation(fields: [userId], references: [id])
+  action         String
+  entity         String
+  entityId       String   @map("entity_id")
+  module         String
+  description    String?
+  previousValues String?  @map("previous_values")
+  newValues      String?  @map("new_values")
+  ipAddress      String?  @map("ip_address")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("system_configs")
+}
