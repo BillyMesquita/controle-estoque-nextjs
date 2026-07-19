@@ -4,24 +4,49 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  const adminExists = await prisma.user.findUnique({ where: { email: 'admin@sistema.dev' } })
-  if (adminExists) { console.log('Seed já executado'); return }
+  const userCount = await prisma.user.count()
 
-  await prisma.user.createMany({
-    data: [
-      { name: 'Admin', email: 'admin@sistema.dev', passwordHash: bcrypt.hashSync('DEV_REMOVED', 10), role: 'Administrador' },
-      { name: 'Operador', email: 'operador@sistema.dev', passwordHash: bcrypt.hashSync('DEV_REMOVED', 10), role: 'Operador' },
-    ],
-  })
+  if (userCount === 0) {
+    await prisma.user.createMany({
+      data: [
+        { name: 'Admin', email: 'admin@sistema.dev', passwordHash: bcrypt.hashSync('DEV_REMOVED', 10), role: 'Administrador' },
+        { name: 'Operador', email: 'operador@sistema.dev', passwordHash: bcrypt.hashSync('DEV_REMOVED', 10), role: 'Operador' },
+      ],
+    })
+    console.log('✓ Usuários criados')
+  }
 
-  await prisma.systemConfig.createMany({
-    data: [
-      { key: 'tax_rate', value: '0', description: 'Percentual de impostos sobre valor bruto' },
-      { key: 'company_name', value: 'Mercado Cultural', description: 'Nome da empresa' },
-    ],
-  })
+  const catCount = await prisma.category.count()
+  if (catCount === 0) {
+    await prisma.category.createMany({
+      data: [
+        { name: 'Bebidas', description: 'Refrigerantes, sucos, água, cervejas' },
+        { name: 'Alimentos', description: 'Salgadinhos, biscoitos, doces' },
+        { name: 'Limpeza', description: 'Produtos de limpeza e higiene' },
+        { name: 'Padaria', description: 'Pães, bolos, salgados' },
+        { name: 'Hortifrúti', description: 'Frutas, verduras e legumes' },
+        { name: 'Laticínios', description: 'Leite, queijo, iogurte' },
+      ],
+    })
+    console.log('✓ Categorias criadas')
+  }
 
-  console.log('Seed concluído: admin/DEV_REMOVED, operador/DEV_REMOVED')
+  const configCount = await prisma.systemConfig.count()
+  if (configCount === 0) {
+    await prisma.systemConfig.createMany({
+      data: [
+        { key: 'tax_rate', value: '0', description: 'Percentual de impostos sobre valor bruto' },
+        { key: 'company_name', value: 'Mercado Cultural', description: 'Nome da empresa' },
+      ],
+    })
+    console.log('✓ Configurações criadas')
+  }
+
+  const finalUsers = await prisma.user.count()
+  const finalCats = await prisma.category.count()
+  console.log(`\nSeed concluído: ${finalUsers} usuários, ${finalCats} categorias`)
+  console.log('Admin: admin@sistema.dev / DEV_REMOVED')
+  console.log('Operador: operador@sistema.dev / DEV_REMOVED')
 }
 
 main()
