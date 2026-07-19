@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const categoryId = searchParams.get('categoryId')
-  const lowStock = searchParams.get('lowStock')
 
   const where: any = { isActive: true }
   if (categoryId) where.categoryId = categoryId
@@ -20,18 +19,14 @@ export async function GET(req: NextRequest) {
     orderBy: { name: 'asc' },
   })
 
-  let result = products.map(p => ({
+  const result = products.map(p => ({
     id: p.id, sku: p.sku, name: p.name, description: p.description,
     categoryId: p.categoryId, categoryName: p.category.name,
     supplierId: p.supplierId, supplierName: p.supplier?.name || null,
     unitCost: Number(p.unitCost), salePrice: Number(p.salePrice),
-    currentStock: Number(p.currentStock), minStockLevel: Number(p.minStockLevel),
+    currentStock: Number(p.currentStock),
     unit: p.unit, isActive: p.isActive, updatedAt: p.updatedAt.toISOString(),
   }))
-
-  if (lowStock === 'true') {
-    result = result.filter(p => p.currentStock <= p.minStockLevel)
-  }
 
   return NextResponse.json(result)
 }
@@ -42,15 +37,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = await req.json()
-    const existing = await prisma.product.findUnique({ where: { sku: data.sku } })
-    if (existing) return NextResponse.json({ error: 'SKU já cadastrado' }, { status: 409 })
+    const sku = data.sku || `PRD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
 
     const product = await prisma.product.create({
       data: {
-        sku: data.sku, name: data.name, description: data.description,
+        sku, name: data.name, description: data.description,
         categoryId: data.categoryId, supplierId: data.supplierId,
         unitCost: data.unitCost, salePrice: data.salePrice,
-        currentStock: data.currentStock || 0, minStockLevel: data.minStockLevel || 0,
+        currentStock: data.currentStock || 0, minStockLevel: 0,
         unit: data.unit || 'UN',
       },
       include: { category: true, supplier: true },
@@ -60,7 +54,7 @@ export async function POST(req: NextRequest) {
       userId: payload.userId, action: 'Criar', entity: 'Product',
       entityId: product.id, module: 'PRODUCT',
       description: `Produto ${product.name} criado`,
-      newValues: JSON.stringify({ sku: data.sku, name: data.name }),
+      newValues: JSON.stringify({ sku, name: data.name }),
     })
 
     return NextResponse.json({
@@ -68,7 +62,7 @@ export async function POST(req: NextRequest) {
       categoryId: product.categoryId, categoryName: product.category.name,
       supplierId: product.supplierId, supplierName: product.supplier?.name || null,
       unitCost: Number(product.unitCost), salePrice: Number(product.salePrice),
-      currentStock: Number(product.currentStock), minStockLevel: Number(product.minStockLevel),
+      currentStock: Number(product.currentStock),
       unit: product.unit, isActive: product.isActive, updatedAt: product.updatedAt.toISOString(),
     }, { status: 201 })
   } catch {

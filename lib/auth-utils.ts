@@ -6,9 +6,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback-dev-secret-key-change-in-
 
 export interface JwtPayload {
   userId: string
-  email: string
+  username: string
   name: string
   role: string
+  permissions?: string[] | null
 }
 
 export function hashPassword(password: string): string {

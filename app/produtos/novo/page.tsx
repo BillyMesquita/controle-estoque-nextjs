@@ -10,7 +10,7 @@ interface Supplier { id: string; name: string }
 
 export default function NewProductPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ sku: '', name: '', description: '', categoryId: '', supplierId: '', unitCost: '', salePrice: '', currentStock: '0', minStockLevel: '0', unit: 'UN' })
+  const [form, setForm] = useState({ name: '', description: '', categoryId: '', supplierId: '', unitCost: '', salePrice: '', currentStock: '0', unit: 'UN' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
@@ -31,7 +31,7 @@ export default function NewProductPage() {
     try {
       const res = await fetch('/api/products', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify({ ...form, unitCost: parseFloat(form.unitCost), salePrice: parseFloat(form.salePrice), currentStock: parseFloat(form.currentStock), minStockLevel: parseFloat(form.minStockLevel) }),
+        body: JSON.stringify({ ...form, unitCost: parseFloat(form.unitCost), salePrice: parseFloat(form.salePrice), currentStock: parseFloat(form.currentStock) }),
       })
       if (!res.ok) { const d = await res.json(); setError(d.error); return }
       router.push('/produtos')
@@ -49,10 +49,7 @@ export default function NewProductPage() {
       </div>
       <form onSubmit={handleSubmit} className="card space-y-5">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-        <div className="grid grid-cols-2 gap-4">
-          <div><label className="label">SKU *</label><input className="input-field" value={form.sku} onChange={set('sku')} required /></div>
-          <div><label className="label">Unidade</label><select className="input-field" value={form.unit} onChange={set('unit')}><option value="UN">UN</option><option value="KG">KG</option><option value="LT">LT</option></select></div>
-        </div>
+        <div><label className="label">Unidade</label><select className="input-field" value={form.unit} onChange={set('unit')}><option value="UN">UN</option><option value="KG">KG</option><option value="LT">LT</option></select></div>
         <div><label className="label">Nome *</label><input className="input-field" value={form.name} onChange={set('name')} required /></div>
         <div><label className="label">Descrição</label><textarea className="input-field" rows={2} value={form.description} onChange={set('description')} /></div>
         <div className="grid grid-cols-2 gap-4">
@@ -75,9 +72,8 @@ export default function NewProductPage() {
           <div><label className="label">Custo Unitário (R$) *</label><input type="number" step="0.01" className="input-field" value={form.unitCost} onChange={set('unitCost')} required /></div>
           <div><label className="label">Preço de Venda (R$) *</label><input type="number" step="0.01" className="input-field" value={form.salePrice} onChange={set('salePrice')} required /></div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div><label className="label">Estoque Atual</label><input type="number" step="0.01" className="input-field" value={form.currentStock} onChange={set('currentStock')} /></div>
-          <div><label className="label">Nível Mínimo</label><input type="number" step="0.01" className="input-field" value={form.minStockLevel} onChange={set('minStockLevel')} /></div>
+        <div>
+          <label className="label">Estoque Atual</label><input type="number" step="0.01" className="input-field" value={form.currentStock} onChange={set('currentStock')} />
         </div>
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
           <Link href="/produtos" className="btn-secondary">Cancelar</Link>

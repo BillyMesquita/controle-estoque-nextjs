@@ -1,11 +1,14 @@
 import { prisma } from './prisma'
 
-export async function getFinancialDashboard(startDate?: string, endDate?: string) {
+export async function getFinancialDashboard(startDate?: string, endDate?: string, eventId?: string) {
   const start = startDate ? new Date(startDate) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
-  const end = endDate ? new Date(endDate) : new Date()
+  const end = endDate ? new Date(endDate + 'T23:59:59.999Z') : new Date()
+
+  const where: any = { movedAt: { gte: start, lte: end }, deletedAt: null }
+  if (eventId) where.eventId = eventId
 
   const movements = await prisma.stockMovement.findMany({
-    where: { movedAt: { gte: start, lte: end }, deletedAt: null },
+    where,
     include: { product: true },
   })
 
@@ -28,12 +31,6 @@ export async function getFinancialDashboard(startDate?: string, endDate?: string
   const impostos = valorBruto * taxRate
   const valorLiquido = valorBruto - cpv - avarias - consumoInterno - impostos
 
-  const allProducts = await prisma.product.findMany({
-    where: { isActive: true },
-    select: { id: true, name: true, sku: true, currentStock: true, minStockLevel: true },
-  })
-  const alertasEstoque = allProducts.filter(p => Number(p.currentStock) <= Number(p.minStockLevel))
-
   const mensal = Object.entries(
     vendasMov.reduce((acc: Record<string, { valorBruto: number; valorLiquido: number }>, m) => {
       const key = `${m.movedAt.getFullYear()}-${String(m.movedAt.getMonth() + 1).padStart(2, '0')}`
@@ -54,11 +51,5 @@ export async function getFinancialDashboard(startDate?: string, endDate?: string
     totalMovimentacoes: movements.length,
     calculadoEm: new Date().toISOString(),
     mensal: mensal.length > 0 ? mensal : null,
-    alertasEstoque: alertasEstoque.length > 0
-      ? alertasEstoque.map(a => ({
-          productId: a.id, productName: a.name, sku: a.sku,
-          currentStock: Number(a.currentStock), minStockLevel: Number(a.minStockLevel),
-        }))
-      : null,
   }
 }

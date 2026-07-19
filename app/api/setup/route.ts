@@ -6,12 +6,12 @@ export async function GET() {
   try {
     await prisma.$connect()
 
-    const adminExists = await prisma.user.findUnique({ where: { email: 'admin@sistema.com' } })
+    const adminExists = await prisma.user.findUnique({ where: { username: 'admin' } })
     if (!adminExists) {
       await prisma.user.createMany({
         data: [
-          { name: 'Admin', email: 'admin@sistema.com', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Administrador' },
-          { name: 'Operador', email: 'operador@sistema.com', passwordHash: bcrypt.hashSync('operador123', 10), role: 'Operador' },
+          { name: 'Admin', username: 'admin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Administrador' },
+          { name: 'Operador', username: 'operador', passwordHash: bcrypt.hashSync('operador123', 10), role: 'Operador' },
         ],
       })
 
@@ -31,8 +31,8 @@ export async function GET() {
       message: 'Banco configurado com sucesso!',
       stats: { usuarios: userCount, produtos: productCount },
       credenciais: {
-        admin: { email: 'admin@sistema.com', senha: 'admin123' },
-        operador: { email: 'operador@sistema.com', senha: 'operador123' },
+        admin: { usuario: 'admin', senha: 'admin123' },
+        operador: { usuario: 'operador', senha: 'operador123' },
       },
     })
   } catch (e: any) {

@@ -9,8 +9,8 @@ async function main() {
   if (userCount === 0) {
     await prisma.user.createMany({
       data: [
-        { name: 'Admin', email: 'admin@sistema.com', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Administrador' },
-        { name: 'Operador', email: 'operador@sistema.com', passwordHash: bcrypt.hashSync('operador123', 10), role: 'Operador' },
+        { name: 'Admin', username: 'admin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Administrador' },
+        { name: 'Operador', username: 'operador', passwordHash: bcrypt.hashSync('operador123', 10), role: 'Operador' },
       ],
     })
     console.log('✓ Usuários criados')
@@ -45,8 +45,8 @@ async function main() {
   const finalUsers = await prisma.user.count()
   const finalCats = await prisma.category.count()
   console.log(`\nSeed concluído: ${finalUsers} usuários, ${finalCats} categorias`)
-  console.log('Admin: admin@sistema.com / admin123')
-  console.log('Operador: operador@sistema.com / operador123')
+  console.log('Admin: admin / admin123')
+  console.log('Operador: operador / operador123')
 }
 
 main()

@@ -11,7 +11,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const startDate = searchParams.get('startDate') || undefined
   const endDate = searchParams.get('endDate') || undefined
+  const eventId = searchParams.get('eventId') || undefined
 
-  const dashboard = await getFinancialDashboard(startDate, endDate)
+  const dashboard = await getFinancialDashboard(startDate, endDate, eventId)
   return NextResponse.json(dashboard)
 }

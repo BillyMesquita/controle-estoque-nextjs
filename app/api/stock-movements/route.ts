@@ -13,10 +13,11 @@ export async function GET(req: NextRequest) {
   if (searchParams.get('type')) where.type = searchParams.get('type')
   if (searchParams.get('startDate')) where.movedAt = { ...where.movedAt, gte: new Date(searchParams.get('startDate')!) }
   if (searchParams.get('endDate')) where.movedAt = { ...where.movedAt, lte: new Date(searchParams.get('endDate')!) }
+  if (searchParams.get('eventId')) where.eventId = searchParams.get('eventId')
 
   const movements = await prisma.stockMovement.findMany({
     where,
-    include: { product: true, movedByUser: { select: { name: true } } },
+    include: { product: true, movedByUser: { select: { name: true } }, event: { select: { name: true } } },
     orderBy: { movedAt: 'desc' },
     take: 500,
   })
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
     type: m.type, quantity: Number(m.quantity), unitCost: Number(m.unitCost), unitPrice: Number(m.unitPrice),
     totalCost: Number(Math.abs(Number(m.quantity)) * Number(m.unitCost)), totalPrice: Number(Math.abs(Number(m.quantity)) * Number(m.unitPrice)),
     description: m.description, movedByName: m.movedByUser.name, movedAt: m.movedAt.toISOString(),
+    eventId: m.eventId, eventName: m.event?.name || null,
   })))
 }
 
@@ -39,25 +41,30 @@ export async function POST(req: NextRequest) {
     if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
 
     const isEntrada = dto.type === 'Entrada' || dto.type === 'Transferencia'
-    const quantity = isEntrada ? Math.abs(dto.quantity) : -Math.abs(dto.quantity)
+    const qtyNum = Number(dto.quantity)
+    const quantity = isEntrada ? Math.abs(qtyNum) : -Math.abs(qtyNum)
+
+    const unitCostEntrada = isEntrada ? (Number(dto.unitCost) || Number(product.unitCost)) : Number(product.unitCost)
+    const unitPriceFinal = isEntrada ? (Number(dto.unitPrice) || Number(product.salePrice)) : Number(product.salePrice)
 
     const movement = await prisma.stockMovement.create({
       data: {
         productId: dto.productId, type: dto.type, quantity,
-        unitCost: dto.unitCost || 0, unitPrice: dto.unitPrice || 0,
+        unitCost: unitCostEntrada, unitPrice: unitPriceFinal,
         description: dto.description, movedBy: payload.userId,
+        eventId: dto.eventId || undefined,
       },
     })
 
     // Atualizar estoque
-    if (dto.type === 'Entrada') {
-      const totalCost = Number(product.currentStock) * Number(product.unitCost) + Math.abs(dto.quantity) * (dto.unitCost || 0)
-      const totalQty = Number(product.currentStock) + Math.abs(dto.quantity)
+    if (isEntrada) {
+      const totalCost = Number(product.currentStock) * Number(product.unitCost) + Math.abs(qtyNum) * unitCostEntrada
+      const totalQty = Number(product.currentStock) + Math.abs(qtyNum)
       await prisma.product.update({
         where: { id: dto.productId },
         data: {
           currentStock: totalQty,
-          unitCost: totalQty > 0 ? totalCost / totalQty : dto.unitCost || 0,
+          unitCost: totalQty > 0 ? totalCost / totalQty : unitCostEntrada,
         },
       })
     } else {
@@ -70,7 +77,7 @@ export async function POST(req: NextRequest) {
     await createAuditLog({
       userId: payload.userId, action: 'Criar', entity: 'StockMovement',
       entityId: movement.id, module: 'STOCK',
-      description: `Movimentação ${dto.type}: ${Math.abs(dto.quantity)}x ${product.name}`,
+      description: `Movimentação ${dto.type}: ${Math.abs(qtyNum)}x ${product.name}`,
     })
 
     return NextResponse.json({
@@ -80,6 +87,7 @@ export async function POST(req: NextRequest) {
       totalCost: Number(Math.abs(Number(movement.quantity)) * Number(movement.unitCost)),
       totalPrice: Number(Math.abs(Number(movement.quantity)) * Number(movement.unitPrice)),
       description: movement.description, movedByName: payload.name, movedAt: movement.movedAt.toISOString(),
+      eventId: movement.eventId, eventName: null,
     }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'Erro ao criar movimentação' }, { status: 500 })

@@ -1,9 +1,10 @@
 CREATE TABLE IF NOT EXISTS "users" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
     "password_hash" TEXT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'Operador',
+    "permissions" TEXT,
     "is_active" INTEGER NOT NULL DEFAULT 1,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL
@@ -50,6 +51,19 @@ CREATE TABLE IF NOT EXISTS "products" (
     FOREIGN KEY ("supplier_id") REFERENCES "suppliers" ("id")
 );
 
+CREATE TABLE IF NOT EXISTS "events" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "start_date" DATETIME NOT NULL,
+    "end_date" DATETIME,
+    "location" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'Planejado',
+    "is_active" INTEGER NOT NULL DEFAULT 1,
+    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" DATETIME NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "stock_movements" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "product_id" TEXT NOT NULL,
@@ -60,11 +74,13 @@ CREATE TABLE IF NOT EXISTS "stock_movements" (
     "description" TEXT,
     "reference_id" TEXT,
     "reference_type" TEXT,
+    "event_id" TEXT,
     "moved_by" TEXT NOT NULL,
     "moved_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" DATETIME,
     FOREIGN KEY ("product_id") REFERENCES "products" ("id"),
-    FOREIGN KEY ("moved_by") REFERENCES "users" ("id")
+    FOREIGN KEY ("moved_by") REFERENCES "users" ("id"),
+    FOREIGN KEY ("event_id") REFERENCES "events" ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "invoices" (
@@ -124,7 +140,7 @@ CREATE TABLE IF NOT EXISTS "system_configs" (
     "updated_at" DATETIME NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS "users_email_key" ON "users"("email");
+CREATE UNIQUE INDEX IF NOT EXISTS "users_username_key" ON "users"("username");
 CREATE UNIQUE INDEX IF NOT EXISTS "products_sku_key" ON "products"("sku");
 CREATE UNIQUE INDEX IF NOT EXISTS "categories_name_key" ON "categories"("name");
 CREATE UNIQUE INDEX IF NOT EXISTS "system_configs_key_key" ON "system_configs"("key");
@@ -134,6 +150,7 @@ CREATE INDEX IF NOT EXISTS "products_supplier_id_idx" ON "products"("supplier_id
 CREATE INDEX IF NOT EXISTS "stock_movements_product_id_idx" ON "stock_movements"("product_id");
 CREATE INDEX IF NOT EXISTS "stock_movements_type_idx" ON "stock_movements"("type");
 CREATE INDEX IF NOT EXISTS "stock_movements_moved_at_idx" ON "stock_movements"("moved_at");
+CREATE INDEX IF NOT EXISTS "stock_movements_event_id_idx" ON "stock_movements"("event_id");
 CREATE INDEX IF NOT EXISTS "invoices_supplier_id_idx" ON "invoices"("supplier_id");
 CREATE INDEX IF NOT EXISTS "invoices_payment_status_idx" ON "invoices"("payment_status");
 CREATE INDEX IF NOT EXISTS "invoice_items_invoice_id_idx" ON "invoice_items"("invoice_id");
