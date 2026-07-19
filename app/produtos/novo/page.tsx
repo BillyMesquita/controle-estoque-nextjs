@@ -1,18 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
+
+interface Category { id: string; name: string }
+interface Supplier { id: string; name: string }
 
 export default function NewProductPage() {
   const router = useRouter()
   const [form, setForm] = useState({ sku: '', name: '', description: '', categoryId: '', supplierId: '', unitCost: '', salePrice: '', currentStock: '0', minStockLevel: '0', unit: 'UN' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [categories, setCategories] = useState<Category[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(setCategories)
+    fetch('/api/suppliers', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(setSuppliers)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!form.categoryId) { setError('Selecione uma categoria'); return }
     setSaving(true)
     try {
       const res = await fetch('/api/products', {
@@ -42,8 +56,20 @@ export default function NewProductPage() {
         <div><label className="label">Nome *</label><input className="input-field" value={form.name} onChange={set('name')} required /></div>
         <div><label className="label">Descrição</label><textarea className="input-field" rows={2} value={form.description} onChange={set('description')} /></div>
         <div className="grid grid-cols-2 gap-4">
-          <div><label className="label">Categoria ID</label><input className="input-field" value={form.categoryId} onChange={set('categoryId')} /></div>
-          <div><label className="label">Fornecedor ID</label><input className="input-field" value={form.supplierId} onChange={set('supplierId')} /></div>
+          <div>
+            <label className="label">Categoria *</label>
+            <select className="input-field" value={form.categoryId} onChange={set('categoryId')} required>
+              <option value="">Selecione...</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label">Fornecedor</label>
+            <select className="input-field" value={form.supplierId} onChange={set('supplierId')}>
+              <option value="">Nenhum</option>
+              {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div><label className="label">Custo Unitário (R$) *</label><input type="number" step="0.01" className="input-field" value={form.unitCost} onChange={set('unitCost')} required /></div>
