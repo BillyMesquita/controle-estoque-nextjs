@@ -33,6 +33,18 @@ async function main() {
   }
   console.log('✓ Tabelas criadas')
 
+  const catCount = await turso.execute('SELECT COUNT(*) as c FROM categories')
+  if (Number(catCount.rows[0].c) === 0) {
+    const cats = ['Bebidas', 'Alimentos', 'Limpeza', 'Padaria', 'Hortifrúti', 'Laticínios']
+    for (const name of cats) {
+      await turso.execute({
+        sql: "INSERT INTO categories (id, name, description, is_active, created_at, updated_at) VALUES (?, ?, ?, 1, datetime('now'), datetime('now'))",
+        args: [crypto.randomUUID(), name, ''],
+      })
+    }
+    console.log('✓ Categorias criadas')
+  }
+
   const existing = await turso.execute("SELECT id FROM users WHERE email = 'admin@sistema.com'")
   if (existing.rows.length === 0) {
     const adminHash = bcrypt.hashSync('admin123', 10)
