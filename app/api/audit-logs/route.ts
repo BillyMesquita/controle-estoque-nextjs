@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const [items, total] = await Promise.all([
     prisma.auditLog.findMany({
       where,
-      include: { user: { select: { name: true, email: true } } },
+      include: { user: { select: { name: true, username: true } } },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     items: items.map(log => ({
-      id: log.id, userName: log.user.name, userEmail: log.user.email,
+      id: log.id, userName: log.user.name, userUsername: log.user.username,
       action: log.action, entity: log.entity, entityId: log.entityId,
       module: log.module, description: log.description,
       previousValues: log.previousValues, newValues: log.newValues,

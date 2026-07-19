@@ -22,7 +22,7 @@ export async function GET(
     categoryId: product.categoryId, categoryName: product.category.name,
     supplierId: product.supplierId, supplierName: product.supplier?.name || null,
     unitCost: Number(product.unitCost), salePrice: Number(product.salePrice),
-    currentStock: Number(product.currentStock), minStockLevel: Number(product.minStockLevel),
+    currentStock: Number(product.currentStock),
     unit: product.unit, isActive: product.isActive, updatedAt: product.updatedAt.toISOString(),
   })
 }
@@ -35,36 +35,39 @@ export async function PUT(
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   const { id } = await params
 
-  const product = await prisma.product.findUnique({ where: { id } })
-  if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
+  try {
+    const product = await prisma.product.findUnique({ where: { id } })
+    if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
 
-  const previous = { name: product.name, unitCost: Number(product.unitCost), salePrice: Number(product.salePrice) }
-  const data = await req.json()
+    const previous = { name: product.name, unitCost: Number(product.unitCost), salePrice: Number(product.salePrice) }
+    const data = await req.json()
 
-  const updated = await prisma.product.update({
-    where: { id },
-    data: {
-      ...(data.name && { name: data.name }),
-      ...(data.description !== undefined && { description: data.description }),
-      ...(data.categoryId && { categoryId: data.categoryId }),
-      ...(data.supplierId !== undefined && { supplierId: data.supplierId }),
-      ...(data.unitCost !== undefined && { unitCost: data.unitCost }),
-      ...(data.salePrice !== undefined && { salePrice: data.salePrice }),
-      ...(data.minStockLevel !== undefined && { minStockLevel: data.minStockLevel }),
-      ...(data.unit && { unit: data.unit }),
-      ...(data.isActive !== undefined && { isActive: data.isActive }),
-    },
-  })
+    const updated = await prisma.product.update({
+      where: { id },
+      data: {
+        ...(data.name && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.categoryId && { categoryId: data.categoryId }),
+        ...(data.supplierId ? { supplierId: data.supplierId } : { supplierId: null }),
+        ...(data.unitCost !== undefined && { unitCost: Number(data.unitCost) }),
+        ...(data.salePrice !== undefined && { salePrice: Number(data.salePrice) }),
+        ...(data.unit && { unit: data.unit }),
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+      },
+    })
 
-  await createAuditLog({
-    userId: payload.userId, action: 'Atualizar', entity: 'Product',
-    entityId: updated.id, module: 'PRODUCT',
-    description: `Produto ${updated.name} atualizado`,
-    previousValues: JSON.stringify(previous),
-    newValues: JSON.stringify({ name: updated.name, unitCost: Number(updated.unitCost), salePrice: Number(updated.salePrice) }),
-  })
+    await createAuditLog({
+      userId: payload.userId, action: 'Atualizar', entity: 'Product',
+      entityId: updated.id, module: 'PRODUCT',
+      description: `Produto ${updated.name} atualizado`,
+      previousValues: JSON.stringify(previous),
+      newValues: JSON.stringify({ name: updated.name, unitCost: Number(updated.unitCost), salePrice: Number(updated.salePrice) }),
+    })
 
-  return new NextResponse(null, { status: 204 })
+    return new NextResponse(null, { status: 204 })
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 })
+  }
 }
 
 export async function DELETE(

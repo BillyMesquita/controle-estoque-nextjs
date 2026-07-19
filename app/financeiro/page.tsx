@@ -1,27 +1,38 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart3, DollarSign, Package, AlertTriangle, TrendingDown, Receipt, TrendingUp } from 'lucide-react'
+import { BarChart3, DollarSign, Package, TrendingDown, Receipt, TrendingUp, Calendar } from 'lucide-react'
+
+const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
 
 export default function FinancialPage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState('12')
+  const [events, setEvents] = useState<any[]>([])
+  const [selectedEventId, setSelectedEventId] = useState('')
+
+  useEffect(() => {
+    api('/api/events').then(async r => { if (r.ok) setEvents(await r.json()) })
+  }, [])
 
   useEffect(() => {
     setLoading(true)
     const endDate = new Date().toISOString().split('T')[0]
     const startDate = new Date(); startDate.setMonth(startDate.getMonth() - parseInt(period))
-    fetch(`/api/financial/dashboard?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    }).then(r => r.json()).then(setData).finally(() => setLoading(false))
-  }, [period])
+    let url = `/api/financial/dashboard?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate}`
+    if (selectedEventId) url += `&eventId=${selectedEventId}`
+    api(url).then(async r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      return r.json()
+    }).then(setData).catch(() => setData(null)).finally(() => setLoading(false))
+  }, [period, selectedEventId])
 
   const metrics = data ? [
     { label: 'Vendas (Volume)', value: data.vendas.toFixed(2), icon: TrendingUp, color: 'text-blue-600 bg-blue-50' },
     { label: 'Valor Bruto', value: `R$ ${data.valorBruto.toFixed(2)}`, icon: DollarSign, color: 'text-green-600 bg-green-50' },
     { label: 'CPV', value: `R$ ${data.custoProdutosVendidos.toFixed(2)}`, icon: TrendingDown, color: 'text-orange-600 bg-orange-50' },
-    { label: 'Avarias', value: `R$ ${data.avarias.toFixed(2)}`, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
+    { label: 'Avarias', value: `R$ ${data.avarias.toFixed(2)}`, icon: TrendingDown, color: 'text-red-600 bg-red-50' },
     { label: 'Consumo Interno', value: `R$ ${data.consumoInterno.toFixed(2)}`, icon: Package, color: 'text-purple-600 bg-purple-50' },
     { label: 'Impostos', value: `R$ ${data.impostos.toFixed(2)}`, icon: Receipt, color: 'text-yellow-600 bg-yellow-50' },
   ] : []
@@ -30,9 +41,20 @@ export default function FinancialPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Financeiro</h1><p className="text-sm text-gray-500 mt-1">Dashboard consolidado em tempo real</p></div>
-        <select className="input-field w-auto" value={period} onChange={e => setPeriod(e.target.value)}>
-          <option value="1">Último mês</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option>
-        </select>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <select className="input-field w-auto" value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)}>
+              <option value="">Todos os eventos</option>
+              {events.map((ev: any) => (
+                <option key={ev.id} value={ev.id}>{ev.name}</option>
+              ))}
+            </select>
+          </div>
+          <select className="input-field w-auto" value={period} onChange={e => setPeriod(e.target.value)}>
+            <option value="1">Último mês</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option>
+          </select>
+        </div>
       </div>
 
       {loading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
@@ -69,17 +91,6 @@ export default function FinancialPage() {
             </div>
           </div>
 
-          {data.alertasEstoque?.length > 0 && (
-            <div className="card border-red-200 bg-red-50">
-              <h3 className="font-semibold flex items-center gap-2 mb-3"><AlertTriangle className="w-4 h-4 text-red-500" /> Alertas ({data.alertasEstoque.length})</h3>
-              {data.alertasEstoque.map((a: any) => (
-                <div key={a.productId} className="flex items-center justify-between text-sm bg-white rounded-lg px-3 py-2 mb-2">
-                  <span className="font-medium">{a.productName}</span>
-                  <span className="text-red-600 font-medium">{a.currentStock.toFixed(2)} / min {a.minStockLevel.toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </>
       }
     </div>
