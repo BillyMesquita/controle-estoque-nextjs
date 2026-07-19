@@ -4,10 +4,8 @@ import bcrypt from 'bcryptjs'
 
 export async function GET() {
   try {
-    // Testar conexão
     await prisma.$connect()
-    
-    // Criar usuários se não existirem
+
     const adminExists = await prisma.user.findUnique({ where: { email: 'admin@sistema.com' } })
     if (!adminExists) {
       await prisma.user.createMany({
@@ -41,12 +39,6 @@ export async function GET() {
     return NextResponse.json({
       status: 'error',
       message: e.message || 'Erro ao conectar no banco de dados',
-      hint: 'Configure DATABASE_URL nas variáveis de ambiente do Vercel com uma string de conexão PostgreSQL.',
-      providers: [
-        { name: 'Neon (grátis)', url: 'https://neon.tech', instructions: 'Crie conta > Create database > Copie connection string' },
-        { name: 'Supabase (grátis)', url: 'https://supabase.com', instructions: 'Crie conta > New project > Go to settings > Database > Connection string' },
-        { name: 'Railway (grátis)', url: 'https://railway.app', instructions: 'Crie conta > New Project > Provision PostgreSQL > Copy DATABASE_URL' },
-      ],
-    }, 500)
+    }, { status: 500 })
   }
 }
