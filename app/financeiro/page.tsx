@@ -8,7 +8,7 @@ import { api } from '@/lib/api'
 export default function FinancialPage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [period, setPeriod] = useState('12')
+  const [period, setPeriod] = useState('1w')
   const [events, setEvents] = useState<any[]>([])
   const [selectedEventId, setSelectedEventId] = useState('')
 
@@ -16,15 +16,23 @@ export default function FinancialPage() {
     api('/api/events').then(async r => {
       if (!r.ok) return
       const list = await r.json()
-      setEvents(list)
-      if (list.length > 0) setSelectedEventId(list.reduce((a: any, b: any) => new Date(a.createdAt) > new Date(b.createdAt) ? a : b).id)
+      const filtered = list.filter((ev: any) => ev.status !== 'Cancelado')
+      setEvents(filtered)
+      if (filtered.length > 0) setSelectedEventId(filtered.reduce((a: any, b: any) => new Date(a.createdAt) > new Date(b.createdAt) ? a : b).id)
     }).catch(() => {})
   }, [])
+
+  function calcStartDate(p: string) {
+    const d = new Date()
+    if (p.endsWith('w')) d.setDate(d.getDate() - 7 * parseInt(p))
+    else d.setMonth(d.getMonth() - parseInt(p))
+    return d
+  }
 
   useEffect(() => {
     setLoading(true)
     const endDate = new Date().toISOString().split('T')[0]
-    const startDate = new Date(); startDate.setMonth(startDate.getMonth() - parseInt(period))
+    const startDate = calcStartDate(period)
     let url = `/api/financial/dashboard?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate}`
     if (selectedEventId) url += `&eventId=${selectedEventId}`
     api(url).then(async r => {
@@ -56,9 +64,9 @@ export default function FinancialPage() {
             </select>
           </div>
           <select className="input-field w-auto" value={period} onChange={e => setPeriod(e.target.value)}>
-            <option value="1">Último mês</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option>
+            <option value="1w">Última semana</option><option value="1">Último mês</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option>
           </select>
-          <button disabled={!selectedEventId} onClick={async () => { const end = new Date(); const start = new Date(); start.setMonth(start.getMonth() - parseInt(period)); const params = new URLSearchParams({ startDate: start.toISOString().split('T')[0], endDate: end.toISOString().split('T')[0], eventId: selectedEventId }); const res = await api(`/api/financial/report?${params}`); const html = await res.text(); const blob = new Blob([html], { type: 'text/html' }); window.open(URL.createObjectURL(blob), '_blank') }}            className={`text-sm flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium transition-colors ${selectedEventId ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'}`}><FileText className="w-4 h-4" /> Exportar Relatório</button>
+          <button disabled={!selectedEventId} onClick={async () => { const end = new Date(); const start = calcStartDate(period); const params = new URLSearchParams({ startDate: start.toISOString().split('T')[0], endDate: end.toISOString().split('T')[0], eventId: selectedEventId }); const res = await api(`/api/financial/report?${params}`); const html = await res.text(); const blob = new Blob([html], { type: 'text/html' }); window.open(URL.createObjectURL(blob), '_blank') }}            className={`text-sm flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium transition-colors ${selectedEventId ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'}`}><FileText className="w-4 h-4" /> Exportar Relatório</button>
         </div>
       </div>
 
