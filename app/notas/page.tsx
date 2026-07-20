@@ -48,7 +48,7 @@ export default function InvoicesPage() {
                     <span className={`text-xs px-2 py-0.5 rounded-full ${inv.invoiceType === 'Fiscal' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>{inv.invoiceType}</span>
                   </div>
                   <p className="text-sm text-gray-500">{inv.supplierName || inv.customerName || 'Sem identificação'}</p>
-                  <p className="text-xs text-gray-400 mt-1">Emissão: {new Date(inv.issuedDate).toLocaleDateString('pt-BR')}</p>
+                  <p className="text-xs text-gray-400 mt-1">Emissão: {new Date(inv.issuedDate).toLocaleDateString('pt-BR')}{inv.dueDate ? ` | Venc: ${new Date(inv.dueDate).toLocaleDateString('pt-BR')}` : ''}</p>
                 </div>
               </div>
               <div className="text-right">
