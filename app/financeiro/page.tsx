@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart3, DollarSign, TrendingDown, Receipt, TrendingUp, Calendar } from 'lucide-react'
+import { BarChart3, DollarSign, TrendingDown, TrendingUp, Calendar } from 'lucide-react'
 
 const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
 
@@ -32,7 +32,6 @@ export default function FinancialPage() {
     { label: 'Vendas (Volume)', value: data.vendas.toFixed(2), icon: TrendingUp, color: 'text-blue-600 bg-blue-50' },
     { label: 'Valor Bruto', value: `R$ ${data.valorBruto.toFixed(2)}`, icon: DollarSign, color: 'text-green-600 bg-green-50' },
     { label: 'Custo', value: `R$ ${data.custoProdutosVendidos.toFixed(2)}`, icon: TrendingDown, color: 'text-orange-600 bg-orange-50' },
-    { label: 'Impostos', value: `R$ ${data.impostos.toFixed(2)}`, icon: Receipt, color: 'text-yellow-600 bg-yellow-50' },
     { label: 'Valor Líquido', value: `${data.valorLiquido >= 0 ? '+' : '-'} R$ ${Math.abs(data.valorLiquido).toFixed(2)}`, icon: TrendingUp, color: `${data.valorLiquido >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}` },
   ] : []
 
@@ -83,7 +82,6 @@ export default function FinancialPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between py-1"><span className="text-gray-500">Valor Bruto</span><span className="font-medium">R$ {data.valorBruto.toFixed(2)}</span></div>
               <div className="flex justify-between py-1"><span className="text-gray-500">- Custo</span><span className="text-orange-600">- R$ {data.custoProdutosVendidos.toFixed(2)}</span></div>
-              <div className="flex justify-between py-1"><span className="text-gray-500">- Impostos</span><span className="text-yellow-600">- R$ {data.impostos.toFixed(2)}</span></div>
               <div className="border-t pt-2 mt-2 flex justify-between"><span className="font-semibold">= Valor Líquido</span><span className={`font-bold text-lg ${data.valorLiquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>R$ {data.valorLiquido.toFixed(2)}</span></div>
             </div>
           </div>

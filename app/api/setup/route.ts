@@ -17,7 +17,6 @@ export async function GET() {
 
       await prisma.systemConfig.createMany({
         data: [
-          { key: 'tax_rate', value: '0', description: 'Percentual de impostos' },
           { key: 'company_name', value: 'Mercado Cultural', description: 'Nome da empresa' },
         ],
       })
