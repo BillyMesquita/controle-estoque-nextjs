@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const product = await prisma.product.findUnique({ where: { id: dto.productId } })
     if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
 
-    const isEntrada = dto.type === 'Entrada' || dto.type === 'Transferencia'
+    const isEntrada = dto.type === 'Entrada'
     const qtyNum = Number(dto.quantity)
     const quantity = isEntrada ? Math.abs(qtyNum) : -Math.abs(qtyNum)
 
