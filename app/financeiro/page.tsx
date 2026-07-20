@@ -52,7 +52,7 @@ export default function FinancialPage() {
           <select className="input-field w-auto" value={period} onChange={e => setPeriod(e.target.value)}>
             <option value="1">Último mês</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option>
           </select>
-          <button onClick={async () => { const end = new Date(); const start = new Date(); start.setMonth(start.getMonth() - parseInt(period)); const params = new URLSearchParams({ startDate: start.toISOString().split('T')[0], endDate: end.toISOString().split('T')[0] }); if (selectedEventId) params.set('eventId', selectedEventId); const res = await api(`/api/financial/report?${params}`); const html = await res.text(); const blob = new Blob([html], { type: 'text/html' }); window.open(URL.createObjectURL(blob), '_blank') }} className="btn-secondary text-sm"><FileText className="w-4 h-4" /> Exportar Relatório</button>
+          <button disabled={!selectedEventId} onClick={async () => { const end = new Date(); const start = new Date(); start.setMonth(start.getMonth() - parseInt(period)); const params = new URLSearchParams({ startDate: start.toISOString().split('T')[0], endDate: end.toISOString().split('T')[0], eventId: selectedEventId }); const res = await api(`/api/financial/report?${params}`); const html = await res.text(); const blob = new Blob([html], { type: 'text/html' }); window.open(URL.createObjectURL(blob), '_blank') }} className={`text-sm flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium transition-colors ${selectedEventId ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-gray-50 text-gray-400 cursor-not-allowed'}`}><FileText className="w-4 h-4" /> Exportar Relatório</button>
         </div>
       </div>
 

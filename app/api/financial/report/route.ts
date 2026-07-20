@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const eventId = searchParams.get('eventId')
+  if (!eventId) return new NextResponse('<h1>Selecione um evento</h1>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
   const startDate = searchParams.get('startDate') || undefined
   const endDate = searchParams.get('endDate') || undefined
 
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
 <head>
   <meta charset="UTF-8">
   <title>${event ? `Relatório - ${event.name}` : 'Relatório Financeiro'}</title>
-  <script>window.onload = () => window.print()</script>
+  
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 40px; font-size: 13px; }
