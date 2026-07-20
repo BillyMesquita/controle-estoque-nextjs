@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart3, DollarSign, TrendingDown, TrendingUp, Calendar } from 'lucide-react'
+import { BarChart3, DollarSign, TrendingDown, TrendingUp, Calendar, FileText } from 'lucide-react'
 
 const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
 
@@ -52,6 +52,7 @@ export default function FinancialPage() {
           <select className="input-field w-auto" value={period} onChange={e => setPeriod(e.target.value)}>
             <option value="1">Último mês</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option>
           </select>
+          <button onClick={() => { const end = new Date(); const start = new Date(); start.setMonth(start.getMonth() - parseInt(period)); const params = new URLSearchParams({ startDate: start.toISOString().split('T')[0], endDate: end.toISOString().split('T')[0] }); if (selectedEventId) params.set('eventId', selectedEventId); window.open(`/api/financial/report?${params}`, '_blank') }} className="btn-secondary text-sm"><FileText className="w-4 h-4" /> Exportar Relatório</button>
         </div>
       </div>
 
