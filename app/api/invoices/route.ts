@@ -10,9 +10,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const filterPaymentStatus = searchParams.get('paymentStatus')
 
-  const where: any = { deletedAt: null }
+  const where: any = {}
+  if (filterPaymentStatus === 'Cancelado') {
+    where.deletedAt = { not: null }
+  } else {
+    where.deletedAt = null
+  }
   if (searchParams.get('status')) where.status = searchParams.get('status')
-  if (filterPaymentStatus && filterPaymentStatus !== 'Atrasado') where.paymentStatus = filterPaymentStatus
+  if (filterPaymentStatus && filterPaymentStatus !== 'Atrasado' && filterPaymentStatus !== 'Cancelado') where.paymentStatus = filterPaymentStatus
 
   const invoices = await prisma.invoice.findMany({
     where,
@@ -105,6 +110,7 @@ export async function POST(req: NextRequest) {
 
 function mapInvoice(i: any) {
   let paymentStatus = i.paymentStatus
+  if (i.status === 'Cancelada') paymentStatus = 'Cancelado'
   if (paymentStatus === 'Pendente' && i.dueDate) {
     const hoje = new Date().toISOString().split('T')[0]
     if (new Date(i.dueDate).toISOString().split('T')[0] < hoje) paymentStatus = 'Atrasado'
