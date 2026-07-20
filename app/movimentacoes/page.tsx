@@ -94,7 +94,7 @@ export default function StockMovementsPage() {
           <Calendar className="w-4 h-4 text-gray-400" />
           <select className="input-field text-sm py-1.5 w-auto" value={eventFilter} onChange={e => setEventFilter(e.target.value)}>
             <option value="">Todos eventos</option>
-            {events.map((ev: any) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+            {activeEvents.map((ev: any) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
           </select>
         </div>
       </div>
