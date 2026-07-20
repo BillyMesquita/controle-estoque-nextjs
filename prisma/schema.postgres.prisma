@@ -137,8 +137,9 @@ model EventCost {
   eventId String @map("event_id")
   type    String
   amount  Float
-  event   Event  @relation(fields: [eventId], references: [id])
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
+  @@index([eventId])
   @@map("event_costs")
 }
 

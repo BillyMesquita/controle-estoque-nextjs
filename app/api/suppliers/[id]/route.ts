@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequest } from '@/lib/auth-utils'
+import { createAuditLog } from '@/lib/audit'
 
 export async function GET(
   req: NextRequest,
@@ -10,10 +11,14 @@ export async function GET(
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   const { id } = await params
 
-  const supplier = await prisma.supplier.findUnique({ where: { id } })
-  if (!supplier) return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
+  try {
+    const supplier = await prisma.supplier.findUnique({ where: { id } })
+    if (!supplier) return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
 
-  return NextResponse.json(supplier)
+    return NextResponse.json(supplier)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar fornecedor' }, { status: 500 })
+  }
 }
 
 export async function PUT(
@@ -40,6 +45,13 @@ export async function PUT(
     },
   })
 
+  await createAuditLog({
+    userId: payload.userId, action: 'Atualizar', entity: 'Supplier',
+    entityId: id, module: 'SUPPLIER',
+    description: `Fornecedor ${supplier.name} atualizado`,
+    newValues: JSON.stringify(data),
+  })
+
   return new NextResponse(null, { status: 204 })
 }
 
@@ -55,6 +67,13 @@ export async function DELETE(
   if (!supplier) return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
 
   await prisma.supplier.update({ where: { id }, data: { isActive: false } })
+
+  await createAuditLog({
+    userId: payload.userId, action: 'Excluir', entity: 'Supplier',
+    entityId: id, module: 'SUPPLIER',
+    description: `Fornecedor ${supplier.name} excluído`,
+    previousValues: JSON.stringify({ name: supplier.name }),
+  })
 
   return new NextResponse(null, { status: 204 })
 }

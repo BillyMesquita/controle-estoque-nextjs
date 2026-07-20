@@ -8,7 +8,7 @@ import { ArrowLeft, Save } from 'lucide-react'
 interface Category { id: string; name: string }
 interface Supplier { id: string; name: string }
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function EditarProdutoPage() {
   const router = useRouter()
@@ -29,7 +29,7 @@ export default function EditarProdutoPage() {
       const data = await r.json()
       setForm({ name: data.name, description: data.description || '', categoryId: data.categoryId, supplierId: data.supplierId || '', unitCost: String(data.unitCost), salePrice: String(data.salePrice), currentStock: String(data.currentStock), unit: data.unit })
       setLoading(false)
-    })
+    }).catch(() => setLoading(false))
   }, [params.id, router])
 
   const handleSubmit = async (e: React.FormEvent) => {

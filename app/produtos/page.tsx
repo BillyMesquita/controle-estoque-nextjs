@@ -6,7 +6,7 @@ import { Plus, Search, Pencil, Trash2, Package } from 'lucide-react'
 
 interface Product { id: string; sku: string; name: string; description: string | null; categoryId: string; categoryName: string; supplierName: string | null; unitCost: number; salePrice: number; currentStock: number; unit: string; isActive: boolean }
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -15,12 +15,14 @@ export default function ProductsPage() {
 
   const load = async () => {
     setLoading(true)
-    const res = await api('/api/products')
-    setProducts(await res.json())
-    setLoading(false)
+    try {
+      const res = await api('/api/products')
+      setProducts(await res.json())
+    } catch { /* ignore */ }
+    finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load().catch(() => {}) }, [])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Desativar este produto?')) return

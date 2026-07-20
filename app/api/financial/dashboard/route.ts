@@ -8,11 +8,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 
-  const { searchParams } = new URL(req.url)
-  const startDate = searchParams.get('startDate') || undefined
-  const endDate = searchParams.get('endDate') || undefined
-  const eventId = searchParams.get('eventId') || undefined
+  try {
+    const { searchParams } = new URL(req.url)
+    const startDate = searchParams.get('startDate') || undefined
+    const endDate = searchParams.get('endDate') || undefined
+    const eventId = searchParams.get('eventId') || undefined
 
-  const dashboard = await getFinancialDashboard(startDate, endDate, eventId)
-  return NextResponse.json(dashboard)
+    const dashboard = await getFinancialDashboard(startDate, endDate, eventId)
+    return NextResponse.json(dashboard)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar dashboard financeiro' }, { status: 500 })
+  }
 }

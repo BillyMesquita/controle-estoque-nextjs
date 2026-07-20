@@ -6,7 +6,7 @@ import { Plus, Search, Pencil, Trash2, Calendar, MapPin, CheckCircle, Clock, XCi
 
 interface Event { id: string; name: string; description: string | null; startDate: string; endDate: string | null; location: string | null; status: string; isActive: boolean }
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   Planejado: { label: 'Planejado', color: 'text-blue-600 bg-blue-50', icon: Clock },
@@ -22,12 +22,14 @@ export default function EventosPage() {
 
   const load = async () => {
     setLoading(true)
-    const res = await api('/api/events')
-    setEvents(await res.json())
-    setLoading(false)
+    try {
+      const res = await api('/api/events')
+      setEvents(await res.json())
+    } catch { /* ignore */ }
+    finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load().catch(() => {}) }, [])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Desativar este evento?')) return

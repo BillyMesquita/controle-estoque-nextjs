@@ -34,6 +34,11 @@ export function getUserFromRequest(req: NextRequest): JwtPayload | null {
   try { return verifyToken(auth.slice(7)) } catch { return null }
 }
 
-export function isAdmin(req: NextRequest): boolean {
-  return getUserFromRequest(req)?.role === 'Administrador'
+export async function getUserFromRequestAsync(req: NextRequest): Promise<JwtPayload | null> {
+  const payload = getUserFromRequest(req)
+  if (!payload) return null
+  const { prisma } = await import('@/lib/prisma')
+  const user = await prisma.user.findUnique({ where: { id: payload.userId }, select: { isActive: true } })
+  if (!user?.isActive) return null
+  return payload
 }

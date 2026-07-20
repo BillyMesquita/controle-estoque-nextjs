@@ -6,11 +6,15 @@ export async function GET(req: NextRequest) {
   const payload = getUserFromRequest(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-  const events = await prisma.event.findMany({
-    where: { isActive: true },
-    orderBy: { startDate: 'desc' },
-  })
-  return NextResponse.json(events)
+  try {
+    const events = await prisma.event.findMany({
+      where: { isActive: true },
+      orderBy: { startDate: 'desc' },
+    })
+    return NextResponse.json(events)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar eventos' }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {

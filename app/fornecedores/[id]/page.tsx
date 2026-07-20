@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { Building2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function EditarFornecedorPage() {
   const router = useRouter()
@@ -17,13 +17,15 @@ export default function EditarFornecedorPage() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await api(`/api/suppliers/${params.id}`)
-      if (!res.ok) { router.push('/fornecedores'); return }
-      const data = await res.json()
-      setForm({ name: data.name, document: data.document || '', contact: data.contact || '', phone: data.phone || '', email: data.email || '', address: data.address || '' })
-      setLoading(false)
+      try {
+        const res = await api(`/api/suppliers/${params.id}`)
+        if (!res.ok) { router.push('/fornecedores'); return }
+        const data = await res.json()
+        setForm({ name: data.name, document: data.document || '', contact: data.contact || '', phone: data.phone || '', email: data.email || '', address: data.address || '' })
+      } catch { /* ignore */ }
+      finally { setLoading(false) }
     }
-    load()
+    load().catch(() => {})
   }, [params.id, router])
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -10,10 +10,14 @@ export async function GET(
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   const { id } = await params
 
-  const event = await prisma.event.findUnique({ where: { id } })
-  if (!event) return NextResponse.json({ error: 'Evento não encontrado' }, { status: 404 })
+  try {
+    const event = await prisma.event.findUnique({ where: { id } })
+    if (!event) return NextResponse.json({ error: 'Evento não encontrado' }, { status: 404 })
 
-  return NextResponse.json(event)
+    return NextResponse.json(event)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar evento' }, { status: 500 })
+  }
 }
 
 export async function PUT(

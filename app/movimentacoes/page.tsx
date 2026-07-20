@@ -5,7 +5,7 @@ import { Plus, TrendingUp, ArrowDownRight, ArrowUpRight, Calendar } from 'lucide
 
 const typeColors: Record<string, string> = { Entrada: 'text-green-600 bg-green-50', Venda: 'text-blue-600 bg-blue-50', Avaria: 'text-red-600 bg-red-50', ConsumoInterno: 'text-orange-600 bg-orange-50' }
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function StockMovementsPage() {
   const [movements, setMovements] = useState<any[]>([])
@@ -19,15 +19,17 @@ export default function StockMovementsPage() {
 
   const load = async () => {
     setLoading(true)
-    const params = new URLSearchParams()
-    if (filter) params.set('type', filter)
-    if (eventFilter) params.set('eventId', eventFilter)
-    const qs = params.toString()
-    const [movRes, prodRes, evRes] = await Promise.all([api(`/api/stock-movements${qs ? `?${qs}` : ''}`), api('/api/products'), api('/api/events')])
-    setMovements(await movRes.json())
-    setProducts(await prodRes.json())
-    setEvents(await evRes.json())
-    setLoading(false)
+    try {
+      const params = new URLSearchParams()
+      if (filter) params.set('type', filter)
+      if (eventFilter) params.set('eventId', eventFilter)
+      const qs = params.toString()
+      const [movRes, prodRes, evRes] = await Promise.all([api(`/api/stock-movements${qs ? `?${qs}` : ''}`), api('/api/products'), api('/api/events')])
+      setMovements(await movRes.json())
+      setProducts(await prodRes.json())
+      setEvents(await evRes.json())
+    } catch { /* ignore */ }
+    finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [filter, eventFilter])
@@ -63,7 +65,7 @@ export default function StockMovementsPage() {
       {showForm && (
         <form onSubmit={handleSubmit} className="card space-y-4">
           <h3 className="font-semibold">Registrar Movimentação</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div><label className="label">Produto</label><select className="input-field" value={form.productId} onChange={set('productId')} required><option value="">Selecione</option>{products.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
             <div><label className="label">Tipo</label><select className="input-field" value={form.type} onChange={set('type')}>{Object.keys(typeColors).map(t => <option key={t} value={t}>{t}</option>)}</select></div>
             <div><label className="label">Quantidade</label><input type="number" step="0.01" className="input-field" value={form.quantity} onChange={set('quantity')} required /></div>

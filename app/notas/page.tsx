@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Plus, FileText, Trash2, DollarSign } from 'lucide-react'
 
 const paymentColors: Record<string, string> = { Pago: 'text-green-600 bg-green-50', Pendente: 'text-yellow-600 bg-yellow-50', Atrasado: 'text-red-600 bg-red-50', Cancelado: 'text-gray-400 bg-gray-100' }
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -14,9 +14,11 @@ export default function InvoicesPage() {
 
   const load = async () => {
     setLoading(true)
-    const res = await api(`/api/invoices${filterStatus ? `?paymentStatus=${filterStatus}` : ''}`)
-    setInvoices(await res.json())
-    setLoading(false)
+    try {
+      const res = await api(`/api/invoices${filterStatus ? `?paymentStatus=${filterStatus}` : ''}`)
+      setInvoices(await res.json())
+    } catch { /* ignore */ }
+    finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [filterStatus])
