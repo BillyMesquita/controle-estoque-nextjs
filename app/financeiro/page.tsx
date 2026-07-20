@@ -87,9 +87,14 @@ export default function FinancialPage() {
           <div className="card">
             <h3 className="font-semibold mb-4">Memória de Cálculo</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between py-1"><span className="text-gray-500">Valor Bruto</span><span className="font-medium">R$ {data.valorBruto.toFixed(2)}</span></div>
-              <div className="flex justify-between py-1"><span className="text-gray-500">- Custo</span><span className="text-orange-600">- R$ {data.custoProdutosVendidos.toFixed(2)}</span></div>
-              {data.custosAdicionais > 0 && <div className="flex justify-between py-1"><span className="text-gray-500">- Custos Adicionais</span><span className="text-red-600">- R$ {data.custosAdicionais.toFixed(2)}</span></div>}
+              <div className="flex justify-between py-1"><span className="text-gray-500">Valor Bruto (Vendas)</span><span className="font-medium text-green-600">R$ {data.valorBruto.toFixed(2)}</span></div>
+              <div className="flex justify-between py-1"><span className="text-gray-500">- Custo dos Produtos Vendidos (CPV)</span><span className="text-orange-600">- R$ {data.custoProdutosVendidos.toFixed(2)}</span></div>
+              {data.custosAdicionais > 0 && <>
+                <div className="flex justify-between py-1"><span className="text-gray-500 font-medium">- Custos Adicionais do Evento</span><span className="text-red-600">- R$ {data.custosAdicionais.toFixed(2)}</span></div>
+                {data.custosDetalhado && Object.entries(data.custosDetalhado).map(([tipo, valor]: [string, any]) => (
+                  <div key={tipo} className="flex justify-between py-0.5 pl-4"><span className="text-gray-400 text-xs">{tipo}</span><span className="text-red-500 text-xs">R$ {Number(valor).toFixed(2)}</span></div>
+                ))}
+              </>}
               <div className="border-t pt-2 mt-2 flex justify-between"><span className="font-semibold">= Valor Líquido</span><span className={`font-bold text-lg ${data.valorLiquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>R$ {data.valorLiquido.toFixed(2)}</span></div>
             </div>
           </div>
