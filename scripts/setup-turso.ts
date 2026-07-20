@@ -47,8 +47,10 @@ async function main() {
 
   const existing = await turso.execute("SELECT id FROM users WHERE username = 'admin'")
   if (existing.rows.length === 0) {
-    const adminHash = bcrypt.hashSync('DEV_REMOVED', 10)
-    const operHash = bcrypt.hashSync('DEV_REMOVED', 10)
+    const adminPass = process.env.DEFAULT_ADMIN_PASS || 'REMOVIDO'
+    const operPass = process.env.DEFAULT_OPER_PASS || 'REMOVIDO'
+    const adminHash = bcrypt.hashSync(adminPass, 10)
+    const operHash = bcrypt.hashSync(operPass, 10)
 
     await turso.execute({
       sql: "INSERT INTO users (id, name, username, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",

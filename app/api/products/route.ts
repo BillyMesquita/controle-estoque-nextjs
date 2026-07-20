@@ -41,14 +41,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = await req.json()
+    if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
+      return NextResponse.json({ error: 'Nome do produto é obrigatório' }, { status: 400 })
+    }
+    if (data.salePrice !== undefined && (isNaN(Number(data.salePrice)) || Number(data.salePrice) < 0)) {
+      return NextResponse.json({ error: 'Preço de venda inválido' }, { status: 400 })
+    }
+    if (data.unitCost !== undefined && (isNaN(Number(data.unitCost)) || Number(data.unitCost) < 0)) {
+      return NextResponse.json({ error: 'Custo unitário inválido' }, { status: 400 })
+    }
     const sku = data.sku || `PRD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
 
     const product = await prisma.product.create({
       data: {
-        sku, name: data.name, description: data.description,
+        sku, name: data.name.trim(), description: data.description,
         categoryId: data.categoryId, supplierId: data.supplierId,
-        unitCost: data.unitCost, salePrice: data.salePrice,
-        currentStock: data.currentStock || 0, minStockLevel: 0,
+        unitCost: Number(data.unitCost) || 0, salePrice: Number(data.salePrice) || 0,
+        currentStock: Math.max(0, Number(data.currentStock) || 0), minStockLevel: 0,
         unit: data.unit || 'UN',
       },
       include: { category: true, supplier: true },

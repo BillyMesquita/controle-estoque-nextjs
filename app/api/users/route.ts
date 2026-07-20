@@ -24,11 +24,17 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = await req.json()
-    if (!data.name || !data.username || !data.password) {
-      return NextResponse.json({ error: 'Nome, usuário e senha são obrigatórios' }, { status: 400 })
+    if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
+      return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 })
+    }
+    if (!data.username || typeof data.username !== 'string' || data.username.trim().length < 3) {
+      return NextResponse.json({ error: 'Usuário deve ter ao menos 3 caracteres' }, { status: 400 })
+    }
+    if (!data.password || typeof data.password !== 'string' || data.password.length < 6) {
+      return NextResponse.json({ error: 'Senha deve ter ao menos 6 caracteres' }, { status: 400 })
     }
 
-    const existing = await prisma.user.findUnique({ where: { username: data.username } })
+    const existing = await prisma.user.findUnique({ where: { username: data.username.trim() } })
     if (existing) return NextResponse.json({ error: 'Usuário já cadastrado' }, { status: 409 })
 
     const permissions = data.permissions?.length ? JSON.stringify(data.permissions) : null

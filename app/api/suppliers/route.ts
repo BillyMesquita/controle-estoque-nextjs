@@ -24,9 +24,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = await req.json()
+    if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
+      return NextResponse.json({ error: 'Nome do fornecedor é obrigatório' }, { status: 400 })
+    }
     const supplier = await prisma.supplier.create({
       data: {
-        name: data.name,
+        name: data.name.trim(),
         document: data.document || null,
         contact: data.contact || null,
         phone: data.phone || null,
