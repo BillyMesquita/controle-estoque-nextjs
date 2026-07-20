@@ -37,6 +37,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const dto = await req.json()
+    if (!dto.invoiceNumber || typeof dto.invoiceNumber !== 'string') {
+      return NextResponse.json({ error: 'Número da nota é obrigatório' }, { status: 400 })
+    }
+    if (!dto.invoiceType || !['Fiscal', 'Avulsa'].includes(dto.invoiceType)) {
+      return NextResponse.json({ error: 'Tipo de nota inválido' }, { status: 400 })
+    }
+    if (!dto.issuedDate || isNaN(Date.parse(dto.issuedDate))) {
+      return NextResponse.json({ error: 'Data de emissão inválida' }, { status: 400 })
+    }
     const totalAmount = dto.items?.length ? dto.items.reduce((s: number, i: any) => s + i.quantity * i.unitCost, 0) : 0
 
     let supplierId = dto.supplierId || null

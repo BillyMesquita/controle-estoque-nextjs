@@ -3,14 +3,17 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'MudarSenha123!'
+const DEFAULT_OPER_PASS = process.env.DEFAULT_OPER_PASS || 'MudarSenha456!'
+
 async function main() {
   const userCount = await prisma.user.count()
 
   if (userCount === 0) {
     await prisma.user.createMany({
       data: [
-        { name: 'Admin', username: 'admin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Administrador' },
-        { name: 'Operador', username: 'operador', passwordHash: bcrypt.hashSync('operador123', 10), role: 'Operador' },
+        { name: 'Admin', username: 'admin', passwordHash: bcrypt.hashSync(DEFAULT_ADMIN_PASS, 10), role: 'Administrador' },
+        { name: 'Operador', username: 'operador', passwordHash: bcrypt.hashSync(DEFAULT_OPER_PASS, 10), role: 'Operador' },
       ],
     })
     console.log('✓ Usuários criados')

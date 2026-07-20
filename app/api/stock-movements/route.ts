@@ -37,11 +37,21 @@ export async function POST(req: NextRequest) {
 
   try {
     const dto = await req.json()
+    if (!dto.productId || !dto.type || dto.quantity === undefined) {
+      return NextResponse.json({ error: 'Produto, tipo e quantidade são obrigatórios' }, { status: 400 })
+    }
+    if (!['Entrada', 'Venda', 'Avaria', 'ConsumoInterno'].includes(dto.type)) {
+      return NextResponse.json({ error: 'Tipo de movimentação inválido' }, { status: 400 })
+    }
+    const qtyNum = Math.abs(Number(dto.quantity))
+    if (isNaN(qtyNum) || qtyNum <= 0) {
+      return NextResponse.json({ error: 'Quantidade deve ser um número positivo' }, { status: 400 })
+    }
+
     const product = await prisma.product.findUnique({ where: { id: dto.productId } })
     if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
 
     const isEntrada = dto.type === 'Entrada'
-    const qtyNum = Math.abs(Number(dto.quantity))
     const quantity = isEntrada ? qtyNum : -qtyNum
 
     if (!isEntrada && Number(product.currentStock) < qtyNum) {

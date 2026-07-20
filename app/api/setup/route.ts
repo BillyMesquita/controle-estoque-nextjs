@@ -4,7 +4,7 @@ import { createClient } from '@libsql/client'
 import bcrypt from 'bcryptjs'
 import { getUserFromRequest } from '@/lib/auth-utils'
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const payload = getUserFromRequest(req)
   if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   try {
@@ -16,10 +16,12 @@ export async function GET(req: NextRequest) {
 
     const adminExists = await prisma.user.findUnique({ where: { username: 'admin' } })
     if (!adminExists) {
+      const adminPass = process.env.DEFAULT_ADMIN_PASS || 'MudarSenha123!'
+      const operPass = process.env.DEFAULT_OPER_PASS || 'MudarSenha456!'
       await prisma.user.createMany({
         data: [
-          { name: 'Admin', username: 'admin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'Administrador' },
-          { name: 'Operador', username: 'operador', passwordHash: bcrypt.hashSync('operador123', 10), role: 'Operador' },
+          { name: 'Admin', username: 'admin', passwordHash: bcrypt.hashSync(adminPass, 10), role: 'Administrador' },
+          { name: 'Operador', username: 'operador', passwordHash: bcrypt.hashSync(operPass, 10), role: 'Operador' },
         ],
       })
 
@@ -39,9 +41,6 @@ export async function GET(req: NextRequest) {
       stats: { usuarios: userCount, produtos: productCount },
     })
   } catch (e: any) {
-    return NextResponse.json({
-      status: 'error',
-      message: e.message || 'Erro ao conectar no banco de dados',
-    }, { status: 500 })
+    return NextResponse.json({ status: 'error', message: e.message || 'Erro ao conectar no banco de dados' }, { status: 500 })
   }
 }
