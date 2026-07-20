@@ -8,7 +8,6 @@ export async function GET(req: NextRequest) {
 
   try {
     const events = await prisma.event.findMany({
-      where: { isActive: true },
       orderBy: { startDate: 'desc' },
     })
     return NextResponse.json(events)
