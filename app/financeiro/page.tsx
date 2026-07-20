@@ -13,7 +13,12 @@ export default function FinancialPage() {
   const [selectedEventId, setSelectedEventId] = useState('')
 
   useEffect(() => {
-    api('/api/events').then(async r => { if (r.ok) setEvents(await r.json()) })
+    api('/api/events').then(async r => {
+      if (!r.ok) return
+      const list = await r.json()
+      setEvents(list)
+      if (list.length > 0) setSelectedEventId(list.reduce((a: any, b: any) => new Date(a.createdAt) > new Date(b.createdAt) ? a : b).id)
+    })
   }, [])
 
   useEffect(() => {
