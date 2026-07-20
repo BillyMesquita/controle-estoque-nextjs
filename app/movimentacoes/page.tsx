@@ -14,7 +14,7 @@ export default function StockMovementsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [filter, setFilter] = useState('')
-  const [form, setForm] = useState({ productId: '', type: 'Entrada', quantity: '1', unitCost: '', unitPrice: '', description: '', eventId: '' })
+  const [form, setForm] = useState({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '' })
   const [eventFilter, setEventFilter] = useState('')
 
   const load = async () => {
