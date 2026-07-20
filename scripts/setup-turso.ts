@@ -60,10 +60,6 @@ async function main() {
     })
     await turso.execute({
       sql: "INSERT INTO system_configs (id, key, value, description, updated_at) VALUES (?, ?, ?, ?, datetime('now'))",
-      args: [crypto.randomUUID(), 'tax_rate', '0', 'Percentual de impostos'],
-    })
-    await turso.execute({
-      sql: "INSERT INTO system_configs (id, key, value, description, updated_at) VALUES (?, ?, ?, ?, datetime('now'))",
       args: [crypto.randomUUID(), 'company_name', 'Mercado Cultural', 'Nome da empresa'],
     })
     console.log('✓ Seed concluído')

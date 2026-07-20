@@ -35,7 +35,7 @@ async function main() {
   if (configCount === 0) {
     await prisma.systemConfig.createMany({
       data: [
-        { key: 'tax_rate', value: '0', description: 'Percentual de impostos sobre valor bruto' },
+
         { key: 'company_name', value: 'Mercado Cultural', description: 'Nome da empresa' },
       ],
     })
