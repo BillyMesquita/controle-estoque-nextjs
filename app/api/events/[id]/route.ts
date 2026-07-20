@@ -53,13 +53,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const payload = getUserFromRequest(req)
-  if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
+  if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   const { id } = await params
 
-  const event = await prisma.event.findUnique({ where: { id } })
-  if (!event) return NextResponse.json({ error: 'Evento não encontrado' }, { status: 404 })
+  try {
+    const event = await prisma.event.findUnique({ where: { id } })
+    if (!event) return NextResponse.json({ error: 'Evento não encontrado' }, { status: 404 })
 
-  await prisma.event.update({ where: { id }, data: { isActive: false } })
+    await prisma.event.update({ where: { id }, data: { status: 'Cancelado' } })
 
-  return new NextResponse(null, { status: 204 })
+    return new NextResponse(null, { status: 204 })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao cancelar evento' }, { status: 500 })
+  }
 }
