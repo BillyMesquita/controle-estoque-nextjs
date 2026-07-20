@@ -18,10 +18,11 @@ export async function GET(req: NextRequest) {
   const where: any = { deletedAt: null, movedAt: { gte: start, lte: end } }
   if (eventId) where.eventId = eventId
 
-  const [event, movements, products] = await Promise.all([
+  const [event, movements, products, eventCosts] = await Promise.all([
     eventId ? prisma.event.findUnique({ where: { id: eventId } }) : null,
     prisma.stockMovement.findMany({ where, include: { product: true, movedByUser: { select: { name: true } } }, orderBy: { movedAt: 'desc' } }),
     prisma.product.findMany(),
+    eventId ? prisma.eventCost.findMany({ where: { eventId } }) : [],
   ])
 
   const movs = movements.map(m => ({
@@ -41,14 +42,16 @@ export async function GET(req: NextRequest) {
   const qtdVendas = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)), 0)
   const valorBruto = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)) * Number(m.unitPrice), 0)
   const custoTotal = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)) * Number(m.unitCost), 0)
-  const valorLiquido = valorBruto - custoTotal
+  const custosAdicionais = eventCosts.reduce((sum, c) => sum + Number(c.amount), 0)
+  const custosDetalhado = eventCosts.reduce((acc: Record<string, number>, c) => { acc[c.type] = (acc[c.type] || 0) + Number(c.amount); return acc }, {})
+  const valorLiquido = valorBruto - custoTotal - custosAdicionais
+  const costRows = Object.entries(custosDetalhado).map(([t, v]) => `<tr><td style="padding-left:24px">${t}</td><td class="text-right text-orange-600">- R$ ${v.toFixed(2)}</td></tr>`).join('')
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>${event ? `Relatório - ${event.name}` : 'Relatório Financeiro'}</title>
-  
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 40px; font-size: 13px; }
@@ -65,7 +68,6 @@ export async function GET(req: NextRequest) {
     td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
     tr:hover td { background: #fafafa; }
     .text-right { text-align: right; }
-    .text-center { text-align: center; }
     .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
     .tag-entrada { background: #dcfce7; color: #166534; }
     .tag-venda { background: #dbeafe; color: #1e40af; }
@@ -85,12 +87,14 @@ export async function GET(req: NextRequest) {
   <div class="resumo">
     <div class="card"><div class="label">Vendas</div><div class="value">${qtdVendas.toFixed(2)}</div></div>
     <div class="card"><div class="label">Valor Bruto</div><div class="value" style="color:#16a34a">R$ ${valorBruto.toFixed(2)}</div></div>
-    <div class="card"><div class="label">Custo Total</div><div class="value" style="color:#ea580c">R$ ${custoTotal.toFixed(2)}</div></div>
+    <div class="card"><div class="label">Custo Produtos</div><div class="value" style="color:#ea580c">R$ ${custoTotal.toFixed(2)}</div></div>
+    ${eventCosts.length > 0 ? `<div class="card"><div class="label">Custos Adicionais</div><div class="value" style="color:#dc2626">R$ ${custosAdicionais.toFixed(2)}</div></div>` : ''}
     <div class="card"><div class="label">Valor Líquido</div><div class="value" style="color:${valorLiquido >= 0 ? '#16a34a' : '#dc2626'}">${valorLiquido >= 0 ? '+' : '-'} R$ ${Math.abs(valorLiquido).toFixed(2)}</div></div>
     <div class="card"><div class="label">Movimentações</div><div class="value">${movements.length}</div></div>
     <div class="card"><div class="label">Produtos</div><div class="value">${products.length}</div></div>
   </div>
-  <h2 style="font-size:16px;margin-bottom:8px">Movimentações</h2>
+  ${eventCosts.length > 0 ? `<h2 style="font-size:16px;margin-bottom:8px">Custos Adicionais</h2><table><thead><tr><th>Tipo</th><th class="text-right">Valor</th></tr></thead><tbody>${costRows}</tbody></table>` : ''}
+  <h2 style="font-size:16px;margin:24px 0 8px">Movimentações</h2>
   <table>
     <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th class="text-right">Qtd</th><th class="text-right">Custo Unit.</th><th class="text-right">Preço Unit.</th><th class="text-right">Total</th><th>Responsável</th></tr></thead>
     <tbody>${movs.map(m => `<tr><td>${m.data}</td><td><span class="tag tag-${m.tipo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}">${m.tipo}</span></td><td>${m.produto}</td><td class="text-right">${m.qtd.toFixed(2)}</td><td class="text-right">R$ ${m.custoUnit.toFixed(2)}</td><td class="text-right">R$ ${m.precoUnit.toFixed(2)}</td><td class="text-right">R$ ${(m.tipo === 'Venda' ? m.totalPreco : m.tipo === 'Entrada' ? m.totalCusto : 0).toFixed(2)}</td><td>${m.responsavel}</td></tr>`).join('')}</tbody>

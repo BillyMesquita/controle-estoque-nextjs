@@ -7,10 +7,10 @@ export async function getFinancialDashboard(startDate?: string, endDate?: string
   const where: any = { movedAt: { gte: start, lte: end }, deletedAt: null }
   if (eventId) where.eventId = eventId
 
-  const movements = await prisma.stockMovement.findMany({
-    where,
-    include: { product: true },
-  })
+  const [movements, eventCosts] = await Promise.all([
+    prisma.stockMovement.findMany({ where, include: { product: true } }),
+    eventId ? prisma.eventCost.findMany({ where: { eventId } }) : [],
+  ])
 
   const q = (m: any) => Math.abs(Number(m.quantity))
   const cost = (m: any) => q(m) * Number(m.unitCost)
@@ -21,7 +21,11 @@ export async function getFinancialDashboard(startDate?: string, endDate?: string
   const valorBruto = vendasMov.reduce((sum, m) => sum + price(m), 0)
   const cpv = vendasMov.reduce((sum, m) => sum + cost(m), 0)
 
-  const valorLiquido = valorBruto - cpv
+  const custosAdicionais = eventCosts.reduce((sum, c) => sum + Number(c.amount), 0)
+  const custosDetalhado: Record<string, number> = {}
+  eventCosts.forEach(c => { custosDetalhado[c.type] = (custosDetalhado[c.type] || 0) + Number(c.amount) })
+
+  const valorLiquido = valorBruto - cpv - custosAdicionais
 
   const mensal = Object.entries(
     vendasMov.reduce((acc: Record<string, { valorBruto: number; valorLiquido: number }>, m) => {
@@ -39,7 +43,7 @@ export async function getFinancialDashboard(startDate?: string, endDate?: string
 
   return {
     vendas, valorBruto,
-    custoProdutosVendidos: cpv, valorLiquido,
+    custoProdutosVendidos: cpv, custosAdicionais, custosDetalhado, valorLiquido,
     totalMovimentacoes: movements.length,
     calculadoEm: new Date().toISOString(),
     mensal: mensal.length > 0 ? mensal : null,

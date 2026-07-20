@@ -2,24 +2,29 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Calendar, ArrowLeft } from 'lucide-react'
+import { Calendar, ArrowLeft, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 
+const COST_TYPES = ['Diaristas', 'Func. Mensal', 'Embalagem', 'Gelo', 'Banda', 'Segurança']
 const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
 
 export default function EditarEventoPage() {
   const router = useRouter()
   const params = useParams()
   const [form, setForm] = useState({ name: '', description: '', startDate: '', endDate: '', location: '', status: 'Planejado' })
+  const [costs, setCosts] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     const load = async () => {
-      const res = await api(`/api/events/${params.id}`)
-      if (!res.ok) { router.push('/eventos'); return }
-      const data = await res.json()
+      const [eventRes, costsRes] = await Promise.all([
+        api(`/api/events/${params.id}`),
+        api(`/api/events/${params.id}/costs`),
+      ])
+      if (!eventRes.ok) { router.push('/eventos'); return }
+      const data = await eventRes.json()
       setForm({
         name: data.name,
         description: data.description || '',
@@ -28,6 +33,13 @@ export default function EditarEventoPage() {
         location: data.location || '',
         status: data.status,
       })
+      if (costsRes.ok) {
+        const costData = await costsRes.json()
+        const costMap: Record<string, string> = {}
+        costData.forEach((c: any) => { costMap[c.type] = c.amount.toString() })
+        COST_TYPES.forEach(t => { if (!costMap[t]) costMap[t] = '' })
+        setCosts(costMap)
+      }
       setLoading(false)
     }
     load()
@@ -39,6 +51,10 @@ export default function EditarEventoPage() {
     setSaving(true); setError('')
     const res = await api(`/api/events/${params.id}`, { method: 'PUT', body: JSON.stringify(form) })
     if (!res.ok) { setError('Erro ao salvar'); setSaving(false); return }
+    if (form.status === 'Finalizado') {
+      const costData = COST_TYPES.filter(t => costs[t] && parseFloat(costs[t]) > 0).map(t => ({ type: t, amount: parseFloat(costs[t]) }))
+      await api(`/api/events/${params.id}/costs`, { method: 'PUT', body: JSON.stringify({ costs: costData }) })
+    }
     router.push('/eventos')
   }
 
@@ -90,6 +106,24 @@ export default function EditarEventoPage() {
             <option value="Cancelado">Cancelado</option>
           </select>
         </div>
+
+        {form.status === 'Finalizado' && (
+          <div className="border-t border-gray-100 pt-4 space-y-4">
+            <div className="flex items-center gap-2 text-purple-600 font-semibold">
+              <DollarSign className="w-5 h-5" /> Custos Adicionais do Evento
+            </div>
+            <p className="text-xs text-gray-400">Preencha os custos extras (opcional)</p>
+            <div className="grid grid-cols-2 gap-3">
+              {COST_TYPES.map(type => (
+                <div key={type}>
+                  <label className="label-field">{type}</label>
+                  <input type="number" step="0.01" className="input-field" placeholder="0,00" value={costs[type] || ''} onChange={e => setCosts(prev => ({ ...prev, [type]: e.target.value }))} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
           <button type="submit" disabled={saving} className="btn-primary">{saving ? 'Salvando...' : 'Salvar'}</button>
           <Link href="/eventos" className="btn-secondary">Cancelar</Link>
