@@ -43,14 +43,13 @@ npm run type-check # verificação de tipos TypeScript
 
 ```bash
 npm install
-cp .env.example .env.local  # configurar DATABASE_URL e DATABASE_AUTH_TOKEN
 npx prisma generate
 npm run dev
 ```
 
 ### Deploy no Vercel
 
-O projeto está configurado para deploy na Vercel com Turso como banco de dados. As variáveis de ambiente necessárias:
+Variáveis de ambiente necessárias na Vercel:
 
 - `DATABASE_URL` — URL de conexão do Turso
 - `DATABASE_AUTH_TOKEN` — token de autenticação do Turso

@@ -45,8 +45,6 @@ async function main() {
   const finalUsers = await prisma.user.count()
   const finalCats = await prisma.category.count()
   console.log(`\nSeed concluído: ${finalUsers} usuários, ${finalCats} categorias`)
-  console.log('Admin: admin / admin123')
-  console.log('Operador: operador / operador123')
 }
 
 main()
