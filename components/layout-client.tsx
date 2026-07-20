@@ -67,6 +67,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
             )
           })}
         </nav>
+        <div className="px-4 pb-2"><p className="text-[10px] text-gray-400 dark:text-gray-600 text-center">Billy Mesquita — iDark Soluções</p></div>
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
