@@ -1,33 +1,43 @@
-# Controle de Estoque
+# Controle de Estoque — Mercado Cultural
 
-Sistema de controle de estoque, notas fiscais e financeiro.
+Sistema de gestão de estoque, eventos, notas fiscais e financeiro desenvolvido para o Mercado Cultural.
 
 ## Tecnologias
 
-- Next.js 15 (App Router)
-- Prisma ORM + Turso (SQLite serverless)
-- Tailwind CSS
-- next-themes (dark mode)
-- autenticação JWT
+- **Next.js 15** (App Router)
+- **Prisma ORM** + Turso (SQLite serverless)
+- **Tailwind CSS**
+- **next-themes** (dark mode)
+- **JWT** (autenticação)
+- **Turso** (banco de dados serverless)
+- **Vercel** (deploy)
 
 ## Funcionalidades
 
-- **Produtos**: cadastro com SKU automático, controle de estoque
-- **Movimentações**: entrada/saída de produtos
-- **Notas Fiscais**: registro de notas fiscais e avulsas
-- **Fornecedores**: cadastro com criação automática via nota
-- **Eventos**: organização por eventos
-- **Financeiro**: dashboard com receitas/despesas
-- **Usuários**: gestão com permissões granulares por menu
-- **Auditoria**: log de todas as ações
-- **Dark mode**: alternância entre tema claro/escuro
+- **Produtos** — cadastro com SKU automático, controle de estoque por lote
+- **Movimentações** — entrada/saída de produtos com tipos (Avaria, Consumo Interno sem impacto financeiro)
+- **Notas Fiscais** — registro de notas fiscais e avulsas com vencimento e status de pagamento
+- **Fornecedores** — cadastro manual ou criação automática via nota fiscal
+- **Eventos** — organização por eventos (Ativo, Planejado, Finalizado, Cancelado) com abas de filtro
+- **Custos de Evento** — cadastro de custos adicionais (Diaristas, Func. Mensal, Banda, etc.)
+- **Financeiro** — dashboard consolidado com:
+  - Valor Bruto, Custo (CPV), Custos Adicionais, Valor Líquido
+  - Memória de cálculo detalhada
+  - Filtro por evento e período (semana/mês/trimestre/semestre/ano)
+  - Relatório exportável em HTML
+- **Usuários** — gestão com permissões granulares por menu
+- **Auditoria** — log de todas as ações com detalhes
+- **Dark mode** — alternância entre tema claro/escuro
+- **Responsivo** — interface adaptável para mobile
 
-## Credenciais padrão
+## Scripts
 
-| Usuário  | Senha      | Perfil         |
-|----------|-----------|----------------|
-| admin    | admin123  | Administrador  |
-| operador | operador123 | Operador     |
+```bash
+npm run dev        # desenvolvimento
+npm run build      # produção
+npm run lint       # verificação de lint
+npm run type-check # verificação de tipos TypeScript
+```
 
 ## Configuração
 
@@ -37,3 +47,15 @@ cp .env.example .env.local  # configurar DATABASE_URL e DATABASE_AUTH_TOKEN
 npx prisma generate
 npm run dev
 ```
+
+### Deploy no Vercel
+
+O projeto está configurado para deploy na Vercel com Turso como banco de dados. As variáveis de ambiente necessárias:
+
+- `DATABASE_URL` — URL de conexão do Turso
+- `DATABASE_AUTH_TOKEN` — token de autenticação do Turso
+- `JWT_SECRET` — chave secreta para JWT
+
+## Créditos
+
+Billy Mesquita — iDark Soluções de Tecnologia
