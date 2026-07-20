@@ -37,10 +37,6 @@ export async function GET(req: NextRequest) {
       status: 'ok',
       message: 'Banco configurado com sucesso!',
       stats: { usuarios: userCount, produtos: productCount },
-      credenciais: {
-        admin: { usuario: 'admin', senha: 'DEV_REMOVED' },
-        operador: { usuario: 'operador', senha: 'DEV_REMOVED' },
-      },
     })
   } catch (e: any) {
     return NextResponse.json({

@@ -38,10 +38,6 @@ async function main() {
 
   console.log()
   console.log('✓ Setup concluído com sucesso!')
-  console.log()
-  console.log('Credenciais:')
-  console.log('  Admin:    admin@sistema.dev / DEV_REMOVED')
-  console.log('  Operador: operador@sistema.dev / DEV_REMOVED')
 }
 
 main().catch((e) => {

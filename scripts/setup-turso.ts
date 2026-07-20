@@ -69,9 +69,6 @@ async function main() {
 
   const count = await turso.execute('SELECT COUNT(*) as c FROM users')
   console.log(`\nUsuários no banco: ${count.rows[0].c}`)
-  console.log('\nCredenciais:')
-  console.log('  Admin:    admin / DEV_REMOVED')
-  console.log('  Operador: operador / DEV_REMOVED')
   console.log(`\nBanco Turso configurado com sucesso!`)
 }
 
