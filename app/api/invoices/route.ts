@@ -8,9 +8,11 @@ export async function GET(req: NextRequest) {
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
+  const filterPaymentStatus = searchParams.get('paymentStatus')
+
   const where: any = { deletedAt: null }
   if (searchParams.get('status')) where.status = searchParams.get('status')
-  if (searchParams.get('paymentStatus')) where.paymentStatus = searchParams.get('paymentStatus')
+  if (filterPaymentStatus && filterPaymentStatus !== 'Atrasado') where.paymentStatus = filterPaymentStatus
 
   const invoices = await prisma.invoice.findMany({
     where,
@@ -18,7 +20,10 @@ export async function GET(req: NextRequest) {
     orderBy: { issuedDate: 'desc' },
   })
 
-  return NextResponse.json(invoices.map(mapInvoice))
+  let result = invoices.map(mapInvoice)
+  if (filterPaymentStatus === 'Atrasado') result = result.filter(i => i.paymentStatus === 'Atrasado')
+
+  return NextResponse.json(result)
 }
 
 export async function POST(req: NextRequest) {
@@ -99,11 +104,16 @@ export async function POST(req: NextRequest) {
 }
 
 function mapInvoice(i: any) {
+  let paymentStatus = i.paymentStatus
+  if (paymentStatus === 'Pendente' && i.dueDate) {
+    const hoje = new Date().toISOString().split('T')[0]
+    if (new Date(i.dueDate).toISOString().split('T')[0] < hoje) paymentStatus = 'Atrasado'
+  }
   return {
     id: i.id, invoiceNumber: i.invoiceNumber, invoiceType: i.invoiceType,
     supplierId: i.supplierId, supplierName: i.supplier?.name || null,
     customerName: i.customerName, totalAmount: Number(i.totalAmount),
-    taxAmount: Number(i.taxAmount), paymentStatus: i.paymentStatus,
+    taxAmount: Number(i.taxAmount), paymentStatus,
     status: i.status, issuedDate: i.issuedDate.toISOString().split('T')[0],
     dueDate: i.dueDate?.toISOString().split('T')[0] || null,
     paidAt: i.paidAt?.toISOString() || null, registeredByName: i.registeredByUser?.name || '',
