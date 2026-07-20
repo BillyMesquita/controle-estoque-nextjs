@@ -17,19 +17,14 @@ export async function getFinancialDashboard(startDate?: string, endDate?: string
   const price = (m: any) => q(m) * Number(m.unitPrice)
 
   const vendasMov = movements.filter(m => m.type === 'Venda')
-  const avariasMov = movements.filter(m => m.type === 'Avaria')
-  const consumoMov = movements.filter(m => m.type === 'ConsumoInterno')
-
   const vendas = vendasMov.reduce((sum, m) => sum + q(m), 0)
   const valorBruto = vendasMov.reduce((sum, m) => sum + price(m), 0)
-  const avarias = avariasMov.reduce((sum, m) => sum + cost(m), 0)
-  const consumoInterno = consumoMov.reduce((sum, m) => sum + cost(m), 0)
   const cpv = vendasMov.reduce((sum, m) => sum + cost(m), 0)
 
   const taxConfig = await prisma.systemConfig.findUnique({ where: { key: 'tax_rate' } })
   const taxRate = taxConfig ? Number(taxConfig.value) / 100 : 0
   const impostos = valorBruto * taxRate
-  const valorLiquido = valorBruto - cpv - avarias - consumoInterno - impostos
+  const valorLiquido = valorBruto - cpv - impostos
 
   const mensal = Object.entries(
     vendasMov.reduce((acc: Record<string, { valorBruto: number; valorLiquido: number }>, m) => {
@@ -46,7 +41,7 @@ export async function getFinancialDashboard(startDate?: string, endDate?: string
   })).sort((a, b) => a.ano - b.ano || a.mes - b.mes)
 
   return {
-    vendas, valorBruto, avarias, consumoInterno,
+    vendas, valorBruto,
     custoProdutosVendidos: cpv, impostos, valorLiquido,
     totalMovimentacoes: movements.length,
     calculadoEm: new Date().toISOString(),
