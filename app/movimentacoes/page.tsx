@@ -15,6 +15,7 @@ export default function StockMovementsPage() {
   const [showForm, setShowForm] = useState(false)
   const [filter, setFilter] = useState('')
   const [form, setForm] = useState({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '' })
+  const [error, setError] = useState('')
   const [eventFilter, setEventFilter] = useState('')
 
   const load = async () => {
@@ -36,6 +37,7 @@ export default function StockMovementsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     const selected = products.find(p => p.id === form.productId)
     const body: any = { productId: form.productId, type: form.type, quantity: parseFloat(form.quantity), description: form.description, eventId: form.eventId || undefined }
     if (form.type === 'Entrada') {
@@ -44,8 +46,14 @@ export default function StockMovementsPage() {
       body.unitCost = selected?.unitCost
       body.unitPrice = selected?.salePrice
     }
-    await api('/api/stock-movements', { method: 'POST', body: JSON.stringify(body) })
+    const res = await api('/api/stock-movements', { method: 'POST', body: JSON.stringify(body) })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Erro ao registrar' }))
+      setError(err.error)
+      return
+    }
     setShowForm(false)
+    setError('')
     setForm({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '' })
     load()
   }
@@ -65,6 +73,7 @@ export default function StockMovementsPage() {
       {showForm && (
         <form onSubmit={handleSubmit} className="card space-y-4">
           <h3 className="font-semibold">Registrar Movimentação</h3>
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div><label className="label">Produto</label><select className="input-field" value={form.productId} onChange={set('productId')} required><option value="">Selecione</option>{products.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
             <div><label className="label">Tipo</label><select className="input-field" value={form.type} onChange={set('type')}>{Object.keys(typeColors).map(t => <option key={t} value={t}>{t}</option>)}</select></div>
