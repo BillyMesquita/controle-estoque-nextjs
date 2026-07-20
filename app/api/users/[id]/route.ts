@@ -11,13 +11,17 @@ export async function GET(
   if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: { id: true, name: true, username: true, role: true, permissions: true, isActive: true },
-  })
-  if (!user) return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, name: true, username: true, role: true, permissions: true, isActive: true },
+    })
+    if (!user) return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
 
-  return NextResponse.json({ ...user, permissions: user.permissions ? JSON.parse(user.permissions) : [] })
+    return NextResponse.json({ ...user, permissions: user.permissions ? JSON.parse(user.permissions) : [] })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar usuário' }, { status: 500 })
+  }
 }
 
 export async function PUT(

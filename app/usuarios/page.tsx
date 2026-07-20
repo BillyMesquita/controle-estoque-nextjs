@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, Pencil, Trash2, Shield, Users } from 'lucide-react'
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function UsuariosPage() {
   const [users, setUsers] = useState<any[]>([])
@@ -12,12 +12,14 @@ export default function UsuariosPage() {
 
   const load = async () => {
     setLoading(true)
-    const res = await api('/api/users')
-    setUsers(await res.json())
-    setLoading(false)
+    try {
+      const res = await api('/api/users')
+      setUsers(await res.json())
+    } catch { /* ignore */ }
+    finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load().catch(() => {}) }, [])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Desativar este usuário?')) return

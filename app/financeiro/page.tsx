@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { BarChart3, DollarSign, TrendingDown, TrendingUp, Calendar, FileText } from 'lucide-react'
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function FinancialPage() {
   const [data, setData] = useState<any>(null)
@@ -18,7 +18,7 @@ export default function FinancialPage() {
       const list = await r.json()
       setEvents(list)
       if (list.length > 0) setSelectedEventId(list.reduce((a: any, b: any) => new Date(a.createdAt) > new Date(b.createdAt) ? a : b).id)
-    })
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function FinancialPage() {
     api(url).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
       return r.json()
-    }).then(setData).catch(() => setData(null)).finally(() => setLoading(false))
+    }).then(setData).catch(() => { setData(null) }).finally(() => setLoading(false))
   }, [period, selectedEventId])
 
   const metrics = data ? [
@@ -45,7 +45,7 @@ export default function FinancialPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Financeiro</h1><p className="text-sm text-gray-500 mt-1">Dashboard consolidado em tempo real</p></div>
-        <div className="flex items-center gap-3">
+<div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-400" />
             <select className="input-field w-auto" value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)}>

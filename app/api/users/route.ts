@@ -7,11 +7,15 @@ export async function GET(req: NextRequest) {
   const payload = getUserFromRequest(req)
   if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
 
-  const users = await prisma.user.findMany({
-    orderBy: { name: 'asc' },
-    select: { id: true, name: true, username: true, role: true, permissions: true, isActive: true, createdAt: true },
-  })
-  return NextResponse.json(users)
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, username: true, role: true, permissions: true, isActive: true, createdAt: true },
+    })
+    return NextResponse.json(users)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar usuários' }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {

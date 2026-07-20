@@ -6,7 +6,7 @@ import { Plus, Search, Pencil, Trash2, Building2 } from 'lucide-react'
 
 interface Supplier { id: string; name: string; document: string | null; contact: string | null; phone: string | null; email: string | null; address: string | null; isActive: boolean }
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function FornecedoresPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
@@ -15,9 +15,11 @@ export default function FornecedoresPage() {
 
   const load = async () => {
     setLoading(true)
-    const res = await api('/api/suppliers')
-    setSuppliers(await res.json())
-    setLoading(false)
+    try {
+      const res = await api('/api/suppliers')
+      setSuppliers(await res.json())
+    } catch { /* ignore */ }
+    finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [])

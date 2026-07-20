@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function NewInvoicePage() {
   const router = useRouter()
@@ -38,19 +38,19 @@ export default function NewInvoicePage() {
       <form onSubmit={handleSubmit} className="card space-y-4">
         <h3 className="font-semibold">Dados da Nota</h3>
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Número *</label><input className="input-field" value={form.invoiceNumber} onChange={set('invoiceNumber')} required /></div>
           <div><label className="label">Tipo</label><select className="input-field" value={form.invoiceType} onChange={set('invoiceType')}><option value="Fiscal">Fiscal</option><option value="Avulsa">Avulsa</option></select></div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Fornecedor</label><input className="input-field" value={form.supplierName} onChange={set('supplierName')} placeholder="Nome do fornecedor" /></div>
           <div><label className="label">Data Emissão *</label><input type="date" className="input-field" value={form.issuedDate} onChange={set('issuedDate')} required /></div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Data Vencimento</label><input type="date" className="input-field" value={form.dueDate} onChange={set('dueDate')} /></div>
           <div></div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Cliente</label><input className="input-field" value={form.customerName} onChange={set('customerName')} placeholder="Nome do cliente" /></div>
           <div><label className="label">CPF/CNPJ</label><input className="input-field" value={form.customerDocument} onChange={set('customerDocument')} placeholder="Documento" /></div>
         </div>

@@ -6,48 +6,49 @@ export async function GET(req: NextRequest) {
   const payload = getUserFromRequest(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-  const { searchParams } = new URL(req.url)
-  const eventId = searchParams.get('eventId')
-  if (!eventId) return new NextResponse('<h1>Selecione um evento</h1>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
-  const startDate = searchParams.get('startDate') || undefined
-  const endDate = searchParams.get('endDate') || undefined
+  try {
+    const { searchParams } = new URL(req.url)
+    const eventId = searchParams.get('eventId')
+    if (!eventId) return new NextResponse('<h1>Selecione um evento</h1>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+    const startDate = searchParams.get('startDate') || undefined
+    const endDate = searchParams.get('endDate') || undefined
 
-  const start = startDate ? new Date(startDate) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
-  const end = endDate ? new Date(endDate + 'T23:59:59.999Z') : new Date()
+    const start = startDate ? new Date(startDate) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+    const end = endDate ? new Date(endDate + 'T23:59:59.999Z') : new Date()
 
-  const where: any = { deletedAt: null, movedAt: { gte: start, lte: end } }
-  if (eventId) where.eventId = eventId
+    const where: any = { deletedAt: null, movedAt: { gte: start, lte: end } }
+    if (eventId) where.eventId = eventId
 
-  const [event, movements, products, eventCosts] = await Promise.all([
-    eventId ? prisma.event.findUnique({ where: { id: eventId } }) : null,
-    prisma.stockMovement.findMany({ where, include: { product: true, movedByUser: { select: { name: true } } }, orderBy: { movedAt: 'desc' } }),
-    prisma.product.findMany(),
-    eventId ? prisma.eventCost.findMany({ where: { eventId } }) : [],
-  ])
+    const [event, movements, products, eventCosts] = await Promise.all([
+      eventId ? prisma.event.findUnique({ where: { id: eventId } }) : null,
+      prisma.stockMovement.findMany({ where, include: { product: true, movedByUser: { select: { name: true } } }, orderBy: { movedAt: 'desc' } }),
+      prisma.product.findMany(),
+      eventId ? prisma.eventCost.findMany({ where: { eventId } }) : [],
+    ])
 
-  const movs = movements.map(m => ({
-    data: m.movedAt.toISOString().split('T')[0],
-    hora: m.movedAt.toISOString().split('T')[1].slice(0, 5),
-    tipo: m.type,
-    produto: m.product.name,
-    qtd: Math.abs(Number(m.quantity)),
-    custoUnit: Number(m.unitCost),
-    precoUnit: Number(m.unitPrice),
-    totalCusto: Math.abs(Number(m.quantity)) * Number(m.unitCost),
-    totalPreco: Math.abs(Number(m.quantity)) * Number(m.unitPrice),
-    responsavel: m.movedByUser.name,
-  }))
+    const movs = movements.map(m => ({
+      data: m.movedAt.toISOString().split('T')[0],
+      hora: m.movedAt.toISOString().split('T')[1].slice(0, 5),
+      tipo: m.type,
+      produto: m.product.name,
+      qtd: Math.abs(Number(m.quantity)),
+      custoUnit: Number(m.unitCost),
+      precoUnit: Number(m.unitPrice),
+      totalCusto: Math.abs(Number(m.quantity)) * Number(m.unitCost),
+      totalPreco: Math.abs(Number(m.quantity)) * Number(m.unitPrice),
+      responsavel: m.movedByUser.name,
+    }))
 
-  const vendas = movements.filter(m => m.type === 'Venda')
-  const qtdVendas = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)), 0)
-  const valorBruto = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)) * Number(m.unitPrice), 0)
-  const custoTotal = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)) * Number(m.unitCost), 0)
-  const custosAdicionais = eventCosts.reduce((sum, c) => sum + Number(c.amount), 0)
-  const custosDetalhado = eventCosts.reduce((acc: Record<string, number>, c) => { acc[c.type] = (acc[c.type] || 0) + Number(c.amount); return acc }, {})
-  const valorLiquido = valorBruto - custoTotal - custosAdicionais
-  const costRows = Object.entries(custosDetalhado).map(([t, v]) => `<tr><td style="padding-left:24px">${t}</td><td class="text-right text-orange-600">- R$ ${v.toFixed(2)}</td></tr>`).join('')
+    const vendas = movements.filter(m => m.type === 'Venda')
+    const qtdVendas = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)), 0)
+    const valorBruto = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)) * Number(m.unitPrice), 0)
+    const custoTotal = vendas.reduce((s, m) => s + Math.abs(Number(m.quantity)) * Number(m.unitCost), 0)
+    const custosAdicionais = eventCosts.reduce((sum, c) => sum + Number(c.amount), 0)
+    const custosDetalhado = eventCosts.reduce((acc: Record<string, number>, c) => { acc[c.type] = (acc[c.type] || 0) + Number(c.amount); return acc }, {})
+    const valorLiquido = valorBruto - custoTotal - custosAdicionais
+    const costRows = Object.entries(custosDetalhado).map(([t, v]) => `<tr><td style="padding-left:24px">${t}</td><td class="text-right text-orange-600">- R$ ${v.toFixed(2)}</td></tr>`).join('')
 
-  const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -103,5 +104,8 @@ export async function GET(req: NextRequest) {
 </body>
 </html>`
 
-  return new NextResponse(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+    return new NextResponse(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao gerar relatório' }, { status: 500 })
+  }
 }

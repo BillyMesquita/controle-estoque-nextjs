@@ -5,8 +5,8 @@ import { useRouter, useParams } from 'next/navigation'
 import { Calendar, ArrowLeft, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 
-const COST_TYPES = ['Diaristas', 'Func. Mensal', 'Embalagem', 'Gelo', 'Banda', 'Segurança']
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
+import { COST_TYPES } from '@/lib/constants'
 
 export default function EditarEventoPage() {
   const router = useRouter()
@@ -19,30 +19,32 @@ export default function EditarEventoPage() {
 
   useEffect(() => {
     const load = async () => {
-      const [eventRes, costsRes] = await Promise.all([
-        api(`/api/events/${params.id}`),
-        api(`/api/events/${params.id}/costs`),
-      ])
-      if (!eventRes.ok) { router.push('/eventos'); return }
-      const data = await eventRes.json()
-      setForm({
-        name: data.name,
-        description: data.description || '',
-        startDate: data.startDate ? data.startDate.split('T')[0] : '',
-        endDate: data.endDate ? data.endDate.split('T')[0] : '',
-        location: data.location || '',
-        status: data.status,
-      })
-      if (costsRes.ok) {
-        const costData = await costsRes.json()
-        const costMap: Record<string, string> = {}
-        costData.forEach((c: any) => { costMap[c.type] = c.amount.toString() })
-        COST_TYPES.forEach(t => { if (!costMap[t]) costMap[t] = '' })
-        setCosts(costMap)
-      }
-      setLoading(false)
+      try {
+        const [eventRes, costsRes] = await Promise.all([
+          api(`/api/events/${params.id}`),
+          api(`/api/events/${params.id}/costs`),
+        ])
+        if (!eventRes.ok) { router.push('/eventos'); return }
+        const data = await eventRes.json()
+        setForm({
+          name: data.name,
+          description: data.description || '',
+          startDate: data.startDate ? data.startDate.split('T')[0] : '',
+          endDate: data.endDate ? data.endDate.split('T')[0] : '',
+          location: data.location || '',
+          status: data.status,
+        })
+        if (costsRes.ok) {
+          const costData = await costsRes.json()
+          const costMap: Record<string, string> = {}
+          costData.forEach((c: any) => { costMap[c.type] = c.amount.toString() })
+          COST_TYPES.forEach(t => { if (!costMap[t]) costMap[t] = '' })
+          setCosts(costMap)
+        }
+      } catch { /* ignore */ }
+      finally { setLoading(false) }
     }
-    load()
+    load().catch(() => {})
   }, [params.id, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,7 +85,7 @@ export default function EditarEventoPage() {
           <label className="label-field">Descrição</label>
           <textarea name="description" className="input-field" rows={2} value={form.description} onChange={handleChange} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="label-field">Data de Início *</label>
             <input name="startDate" type="date" className="input-field" value={form.startDate} onChange={handleChange} />
@@ -113,7 +115,7 @@ export default function EditarEventoPage() {
               <DollarSign className="w-5 h-5" /> Custos Adicionais do Evento
             </div>
             <p className="text-xs text-gray-400">Preencha os custos extras (opcional)</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {COST_TYPES.map(type => (
                 <div key={type}>
                   <label className="label-field">{type}</label>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequest } from '@/lib/auth-utils'
 
-const COST_TYPES = ['Diaristas', 'Func. Mensal', 'Embalagem', 'Gelo', 'Banda', 'Segurança']
+import { COST_TYPES } from '@/lib/constants'
 
 export async function GET(
   req: NextRequest,
@@ -12,8 +12,12 @@ export async function GET(
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   const { id } = await params
 
-  const costs = await prisma.eventCost.findMany({ where: { eventId: id } })
-  return NextResponse.json(costs)
+  try {
+    const costs = await prisma.eventCost.findMany({ where: { eventId: id } })
+    return NextResponse.json(costs)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar custos' }, { status: 500 })
+  }
 }
 
 export async function PUT(

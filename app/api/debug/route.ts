@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getUserFromRequest } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
-  const dbUrl = (process.env.DATABASE_URL || '(not set)').replace(/^\ufeff/, '')
-  const nodeEnv = process.env.NODE_ENV || '(not set)'
+export async function GET(req: NextRequest) {
+  const payload = getUserFromRequest(req)
+  if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
 
   let dbStatus = 'unknown'
   try {
@@ -15,10 +16,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    database_url: dbUrl.length > 60 ? dbUrl.substring(0, 60) + '...' : dbUrl,
-    auth_token_set: !!process.env.DATABASE_AUTH_TOKEN,
-    node_env: nodeEnv,
+    node_env: process.env.NODE_ENV || '(not set)',
     db_status: dbStatus,
-    first_byte: dbUrl.length > 0 ? dbUrl.charCodeAt(0) : -1,
   })
 }

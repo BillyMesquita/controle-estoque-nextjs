@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Calendar, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function NovoEventoPage() {
   const router = useRouter()
@@ -45,7 +45,7 @@ export default function NovoEventoPage() {
           <label className="label-field">Descrição</label>
           <textarea name="description" className="input-field" rows={2} placeholder="Descrição do evento" value={form.description} onChange={handleChange} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="label-field">Data de Início *</label>
             <input name="startDate" type="date" className="input-field" value={form.startDate} onChange={handleChange} />

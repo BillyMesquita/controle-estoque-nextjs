@@ -11,20 +11,24 @@ export async function GET(
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   const { id } = await params
 
-  const product = await prisma.product.findUnique({
-    where: { id },
-    include: { category: true, supplier: true },
-  })
-  if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: { category: true, supplier: true },
+    })
+    if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
 
-  return NextResponse.json({
-    id: product.id, sku: product.sku, name: product.name, description: product.description,
-    categoryId: product.categoryId, categoryName: product.category.name,
-    supplierId: product.supplierId, supplierName: product.supplier?.name || null,
-    unitCost: Number(product.unitCost), salePrice: Number(product.salePrice),
-    currentStock: Number(product.currentStock),
-    unit: product.unit, isActive: product.isActive, updatedAt: product.updatedAt.toISOString(),
-  })
+    return NextResponse.json({
+      id: product.id, sku: product.sku, name: product.name, description: product.description,
+      categoryId: product.categoryId, categoryName: product.category.name,
+      supplierId: product.supplierId, supplierName: product.supplier?.name || null,
+      unitCost: Number(product.unitCost), salePrice: Number(product.salePrice),
+      currentStock: Number(product.currentStock),
+      unit: product.unit, isActive: product.isActive, updatedAt: product.updatedAt.toISOString(),
+    })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar produto' }, { status: 500 })
+  }
 }
 
 export async function PUT(

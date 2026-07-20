@@ -4,7 +4,7 @@ Sistema de controle de estoque, notas fiscais e financeiro.
 
 ## Tecnologias
 
-- Next.js 14 (App Router)
+- Next.js 15 (App Router)
 - Prisma ORM + Turso (SQLite serverless)
 - Tailwind CSS
 - next-themes (dark mode)

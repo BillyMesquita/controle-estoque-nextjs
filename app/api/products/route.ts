@@ -7,28 +7,32 @@ export async function GET(req: NextRequest) {
   const payload = getUserFromRequest(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-  const { searchParams } = new URL(req.url)
-  const categoryId = searchParams.get('categoryId')
+  try {
+    const { searchParams } = new URL(req.url)
+    const categoryId = searchParams.get('categoryId')
 
-  const where: any = { isActive: true }
-  if (categoryId) where.categoryId = categoryId
+    const where: any = { isActive: true }
+    if (categoryId) where.categoryId = categoryId
 
-  const products = await prisma.product.findMany({
-    where,
-    include: { category: true, supplier: true },
-    orderBy: { name: 'asc' },
-  })
+    const products = await prisma.product.findMany({
+      where,
+      include: { category: true, supplier: true },
+      orderBy: { name: 'asc' },
+    })
 
-  const result = products.map(p => ({
-    id: p.id, sku: p.sku, name: p.name, description: p.description,
-    categoryId: p.categoryId, categoryName: p.category.name,
-    supplierId: p.supplierId, supplierName: p.supplier?.name || null,
-    unitCost: Number(p.unitCost), salePrice: Number(p.salePrice),
-    currentStock: Number(p.currentStock),
-    unit: p.unit, isActive: p.isActive, updatedAt: p.updatedAt.toISOString(),
-  }))
+    const result = products.map(p => ({
+      id: p.id, sku: p.sku, name: p.name, description: p.description,
+      categoryId: p.categoryId, categoryName: p.category.name,
+      supplierId: p.supplierId, supplierName: p.supplier?.name || null,
+      unitCost: Number(p.unitCost), salePrice: Number(p.salePrice),
+      currentStock: Number(p.currentStock),
+      unit: p.unit, isActive: p.isActive, updatedAt: p.updatedAt.toISOString(),
+    }))
 
-  return NextResponse.json(result)
+    return NextResponse.json(result)
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar produtos' }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {

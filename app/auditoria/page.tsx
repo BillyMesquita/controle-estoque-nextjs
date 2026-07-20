@@ -11,17 +11,19 @@ export default function AuditPage() {
 
   const load = async () => {
     setLoading(true)
-    const params = new URLSearchParams({ page: filter.page.toString(), pageSize: '50' })
-    if (filter.module) params.set('module', filter.module)
-    if (filter.action) params.set('action', filter.action)
-    const res = await fetch(`/api/audit-logs?${params}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-    const data = await res.json()
-    setLogs(data.items)
-    setTotal(data.total)
-    setLoading(false)
+    try {
+      const params = new URLSearchParams({ page: filter.page.toString(), pageSize: '50' })
+      if (filter.module) params.set('module', filter.module)
+      if (filter.action) params.set('action', filter.action)
+      const res = await fetch(`/api/audit-logs?${params}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      const data = await res.json()
+      setLogs(data.items)
+      setTotal(data.total)
+    } catch { /* ignore */ }
+    finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [filter.page, filter.module, filter.action])
+  useEffect(() => { load().catch(() => {}) }, [filter.page, filter.module, filter.action])
 
   return (
     <div className="space-y-6">

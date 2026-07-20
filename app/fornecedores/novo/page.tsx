@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Building2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
+import { api } from '@/lib/api'
 
 export default function NovoFornecedorPage() {
   const router = useRouter()
@@ -41,7 +41,7 @@ export default function NovoFornecedorPage() {
           <label className="label-field">Nome *</label>
           <input name="name" className="input-field" placeholder="Nome do fornecedor" value={form.name} onChange={handleChange} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="label-field">CNPJ/CPF</label>
             <input name="document" className="input-field" placeholder="00.000.000/0001-00" value={form.document} onChange={handleChange} />
@@ -51,7 +51,7 @@ export default function NovoFornecedorPage() {
             <input name="contact" className="input-field" placeholder="Nome do contato" value={form.contact} onChange={handleChange} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="label-field">Telefone</label>
             <input name="phone" className="input-field" placeholder="(11) 99999-9999" value={form.phone} onChange={handleChange} />

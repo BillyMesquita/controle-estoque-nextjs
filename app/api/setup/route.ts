@@ -1,9 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@libsql/client'
 import bcrypt from 'bcryptjs'
+import { getUserFromRequest } from '@/lib/auth-utils'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const payload = getUserFromRequest(req)
+  if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   try {
     const t = createClient({ url: process.env.DATABASE_URL || '', authToken: process.env.DATABASE_AUTH_TOKEN || '' })
     await t.execute(`CREATE TABLE IF NOT EXISTS event_costs (id TEXT NOT NULL PRIMARY KEY, event_id TEXT NOT NULL, type TEXT NOT NULL, amount REAL NOT NULL DEFAULT 0, FOREIGN KEY (event_id) REFERENCES events(id))`)

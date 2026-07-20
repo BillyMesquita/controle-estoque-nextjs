@@ -45,18 +45,18 @@ async function main() {
     console.log('✓ Categorias criadas')
   }
 
-  const existing = await turso.execute("SELECT id FROM users WHERE email = 'admin@sistema.dev'")
+  const existing = await turso.execute("SELECT id FROM users WHERE username = 'admin'")
   if (existing.rows.length === 0) {
     const adminHash = bcrypt.hashSync('DEV_REMOVED', 10)
     const operHash = bcrypt.hashSync('DEV_REMOVED', 10)
 
     await turso.execute({
-      sql: "INSERT INTO users (id, name, email, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
-      args: [crypto.randomUUID(), 'Admin', 'admin@sistema.dev', adminHash, 'Administrador'],
+      sql: "INSERT INTO users (id, name, username, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
+      args: [crypto.randomUUID(), 'Admin', 'admin', adminHash, 'Administrador'],
     })
     await turso.execute({
-      sql: "INSERT INTO users (id, name, email, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
-      args: [crypto.randomUUID(), 'Operador', 'operador@sistema.dev', operHash, 'Operador'],
+      sql: "INSERT INTO users (id, name, username, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
+      args: [crypto.randomUUID(), 'Operador', 'operador', operHash, 'Operador'],
     })
     await turso.execute({
       sql: "INSERT INTO system_configs (id, key, value, description, updated_at) VALUES (?, ?, ?, ?, datetime('now'))",
@@ -70,8 +70,8 @@ async function main() {
   const count = await turso.execute('SELECT COUNT(*) as c FROM users')
   console.log(`\nUsuários no banco: ${count.rows[0].c}`)
   console.log('\nCredenciais:')
-  console.log('  Admin:    admin@sistema.dev / DEV_REMOVED')
-  console.log('  Operador: operador@sistema.dev / DEV_REMOVED')
+  console.log('  Admin:    admin / DEV_REMOVED')
+  console.log('  Operador: operador / DEV_REMOVED')
   console.log(`\nBanco Turso configurado com sucesso!`)
 }
 
