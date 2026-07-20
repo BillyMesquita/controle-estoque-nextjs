@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
     const qtyNum = Number(dto.quantity)
     const quantity = isEntrada ? Math.abs(qtyNum) : -Math.abs(qtyNum)
 
-    const unitCostEntrada = isEntrada ? (Number(dto.unitCost) || Number(product.unitCost)) : Number(product.unitCost)
-    const unitPriceFinal = isEntrada ? (Number(dto.unitPrice) || Number(product.salePrice)) : Number(product.salePrice)
+    const unitCostEntrada = isEntrada ? (Number(dto.unitCost) || Number(product.unitCost)) : (dto.type === 'Avaria' || dto.type === 'ConsumoInterno' ? 0 : Number(product.unitCost))
+    const unitPriceFinal = isEntrada ? (Number(dto.unitPrice) || Number(product.salePrice)) : (dto.type === 'Avaria' || dto.type === 'ConsumoInterno' ? 0 : Number(product.salePrice))
 
     const movement = await prisma.stockMovement.create({
       data: {
