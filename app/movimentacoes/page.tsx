@@ -58,7 +58,7 @@ export default function StockMovementsPage() {
     load()
   }
 
-  const activeEvents = events.filter(e => e.status !== 'Finalizado')
+  const activeEvents = events.filter(e => e.status === 'Ativo')
   const finishedEvents = events.filter(e => e.status === 'Finalizado')
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm(prev => ({ ...prev, [field]: e.target.value }))
 
