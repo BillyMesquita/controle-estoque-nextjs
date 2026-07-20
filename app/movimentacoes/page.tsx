@@ -37,14 +37,14 @@ export default function StockMovementsPage() {
     const selected = products.find(p => p.id === form.productId)
     const body: any = { productId: form.productId, type: form.type, quantity: parseFloat(form.quantity), description: form.description, eventId: form.eventId || undefined }
     if (form.type === 'Entrada') {
-      body.unitCost = form.unitCost ? parseFloat(form.unitCost) : undefined
+      body.unitCost = selected?.unitCost
     } else {
       body.unitCost = selected?.unitCost
       body.unitPrice = selected?.salePrice
     }
     await api('/api/stock-movements', { method: 'POST', body: JSON.stringify(body) })
     setShowForm(false)
-    setForm({ productId: '', type: 'Entrada', quantity: '1', unitCost: '', unitPrice: '', description: '', eventId: '' })
+    setForm({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '' })
     load()
   }
 
@@ -67,10 +67,8 @@ export default function StockMovementsPage() {
             <div><label className="label">Produto</label><select className="input-field" value={form.productId} onChange={set('productId')} required><option value="">Selecione</option>{products.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
             <div><label className="label">Tipo</label><select className="input-field" value={form.type} onChange={set('type')}>{Object.keys(typeColors).map(t => <option key={t} value={t}>{t}</option>)}</select></div>
             <div><label className="label">Quantidade</label><input type="number" step="0.01" className="input-field" value={form.quantity} onChange={set('quantity')} required /></div>
-            {form.type === 'Entrada' && <div><label className="label">Custo Unit. (novo)</label><input type="number" step="0.01" className="input-field" value={form.unitCost} onChange={set('unitCost')} placeholder="Informe o custo" /></div>}
             {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Custo Unit.</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">R$ {Number(selectedProduct.unitCost).toFixed(2)}</div></div>}
             {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Preço Unit.</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">R$ {Number(selectedProduct.salePrice).toFixed(2)}</div></div>}
-            {form.type === 'Entrada' && <div></div>}
             <div><label className="label">Descrição</label><input className="input-field" value={form.description} onChange={set('description')} /></div>
             <div><label className="label">Evento</label><select className="input-field" value={form.eventId} onChange={set('eventId')}><option value="">Nenhum</option>            {activeEvents.map((ev: any) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}</select></div>
           </div>
