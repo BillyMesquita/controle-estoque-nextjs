@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, TrendingUp, ArrowDownRight, ArrowUpRight, Calendar } from 'lucide-react'
 
-const typeColors: Record<string, string> = { Entrada: 'text-green-600 bg-green-50', Venda: 'text-blue-600 bg-blue-50', Avaria: 'text-red-600 bg-red-50', ConsumoInterno: 'text-orange-600 bg-orange-50', Ajuste: 'text-purple-600 bg-purple-50', Transferencia: 'text-cyan-600 bg-cyan-50' }
+const typeColors: Record<string, string> = { Entrada: 'text-green-600 bg-green-50', Venda: 'text-blue-600 bg-blue-50', Avaria: 'text-red-600 bg-red-50', ConsumoInterno: 'text-orange-600 bg-orange-50' }
 
 const api = (path: string, options?: RequestInit) => fetch(path, { ...options, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}`, ...options?.headers } })
 
