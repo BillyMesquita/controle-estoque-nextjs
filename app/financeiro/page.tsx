@@ -37,6 +37,7 @@ export default function FinancialPage() {
     { label: 'Vendas (Volume)', value: data.vendas.toFixed(2), icon: TrendingUp, color: 'text-blue-600 bg-blue-50' },
     { label: 'Valor Bruto', value: `R$ ${data.valorBruto.toFixed(2)}`, icon: DollarSign, color: 'text-green-600 bg-green-50' },
     { label: 'Custo', value: `R$ ${data.custoProdutosVendidos.toFixed(2)}`, icon: TrendingDown, color: 'text-orange-600 bg-orange-50' },
+    ...(data.custosAdicionais > 0 ? [{ label: 'Custos Adicionais', value: `R$ ${data.custosAdicionais.toFixed(2)}`, icon: TrendingDown, color: 'text-red-600 bg-red-50' }] : []),
     { label: 'Valor Líquido', value: `${data.valorLiquido >= 0 ? '+' : '-'} R$ ${Math.abs(data.valorLiquido).toFixed(2)}`, icon: TrendingUp, color: `${data.valorLiquido >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}` },
   ] : []
 
@@ -88,6 +89,7 @@ export default function FinancialPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between py-1"><span className="text-gray-500">Valor Bruto</span><span className="font-medium">R$ {data.valorBruto.toFixed(2)}</span></div>
               <div className="flex justify-between py-1"><span className="text-gray-500">- Custo</span><span className="text-orange-600">- R$ {data.custoProdutosVendidos.toFixed(2)}</span></div>
+              {data.custosAdicionais > 0 && <div className="flex justify-between py-1"><span className="text-gray-500">- Custos Adicionais</span><span className="text-red-600">- R$ {data.custosAdicionais.toFixed(2)}</span></div>}
               <div className="border-t pt-2 mt-2 flex justify-between"><span className="font-semibold">= Valor Líquido</span><span className={`font-bold text-lg ${data.valorLiquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>R$ {data.valorLiquido.toFixed(2)}</span></div>
             </div>
           </div>

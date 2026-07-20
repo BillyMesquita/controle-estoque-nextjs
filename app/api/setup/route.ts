@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createClient } from '@libsql/client'
 import bcrypt from 'bcryptjs'
 
 export async function GET() {
+  try {
+    const t = createClient({ url: process.env.DATABASE_URL || '', authToken: process.env.DATABASE_AUTH_TOKEN || '' })
+    await t.execute(`CREATE TABLE IF NOT EXISTS event_costs (id TEXT NOT NULL PRIMARY KEY, event_id TEXT NOT NULL, type TEXT NOT NULL, amount REAL NOT NULL DEFAULT 0, FOREIGN KEY (event_id) REFERENCES events(id))`)
+  } catch {} // tabela ja existe
   try {
     await prisma.$connect()
 

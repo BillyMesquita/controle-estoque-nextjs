@@ -132,6 +132,14 @@ CREATE TABLE IF NOT EXISTS "audit_logs" (
     FOREIGN KEY ("user_id") REFERENCES "users" ("id")
 );
 
+CREATE TABLE IF NOT EXISTS "event_costs" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "event_id" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "amount" REAL NOT NULL DEFAULT 0,
+    FOREIGN KEY ("event_id") REFERENCES "events" ("id")
+);
+
 CREATE TABLE IF NOT EXISTS "system_configs" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "key" TEXT NOT NULL,
@@ -158,3 +166,4 @@ CREATE INDEX IF NOT EXISTS "invoice_items_product_id_idx" ON "invoice_items"("pr
 CREATE INDEX IF NOT EXISTS "audit_logs_user_id_idx" ON "audit_logs"("user_id");
 CREATE INDEX IF NOT EXISTS "audit_logs_entity_entity_id_idx" ON "audit_logs"("entity", "entity_id");
 CREATE INDEX IF NOT EXISTS "audit_logs_created_at_idx" ON "audit_logs"("created_at");
+CREATE INDEX IF NOT EXISTS "event_costs_event_id_idx" ON "event_costs"("event_id");
