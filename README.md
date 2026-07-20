@@ -1,6 +1,6 @@
 # Controle de Estoque — Mercado Cultural
 
-Sistema de gestão de estoque, eventos, notas fiscais e financeiro desenvolvido para o Mercado Cultural.
+Sistema de gestão de estoque, eventos, notas fiscais e financeiro.
 
 ## Tecnologias
 
@@ -8,27 +8,34 @@ Sistema de gestão de estoque, eventos, notas fiscais e financeiro desenvolvido 
 - **Prisma ORM** + Turso (SQLite serverless)
 - **Tailwind CSS**
 - **next-themes** (dark mode)
-- **JWT** (autenticação)
+- **JWT** (autenticação com expiração 12h)
+- **bcrypt** (senhas com hash + salt)
 - **Turso** (banco de dados serverless)
 - **Vercel** (deploy)
 
 ## Funcionalidades
 
-- **Produtos** — cadastro com SKU automático, controle de estoque por lote
-- **Movimentações** — entrada/saída de produtos com tipos (Avaria, Consumo Interno sem impacto financeiro)
-- **Notas Fiscais** — registro de notas fiscais e avulsas com vencimento e status de pagamento
-- **Fornecedores** — cadastro manual ou criação automática via nota fiscal
-- **Eventos** — organização por eventos (Ativo, Planejado, Finalizado, Cancelado) com abas de filtro
-- **Custos de Evento** — cadastro de custos adicionais (Diaristas, Func. Mensal, Banda, etc.)
-- **Financeiro** — dashboard consolidado com:
-  - Valor Bruto, Custo (CPV), Custos Adicionais, Valor Líquido
-  - Memória de cálculo detalhada
-  - Filtro por evento e período (semana/mês/trimestre/semestre/ano)
-  - Relatório exportável em HTML
+- **Produtos** — cadastro com SKU automático, controle de estoque
+- **Movimentações** — entrada/saída com validação de estoque disponível
+- **Notas Fiscais** — fiscais e avulsas com vencimento e status (Pendente, Pago, Atrasado, Cancelado)
+- **Fornecedores** — cadastro manual ou automático via nota
+- **Eventos** — organização com abas por status (Ativo, Planejado, Finalizado, Cancelado)
+- **Custos de Evento** — custos adicionais (Diaristas, Banda, Segurança, etc.)
+- **Financeiro** — dashboard com Valor Bruto, CPV, Custos Adicionais, Valor Líquido, memória de cálculo detalhada, filtro por evento/período, relatório exportável
 - **Usuários** — gestão com permissões granulares por menu
-- **Auditoria** — log de todas as ações com detalhes
-- **Dark mode** — alternância entre tema claro/escuro
-- **Responsivo** — interface adaptável para mobile
+- **Auditoria** — log de todas as ações
+- **Dark mode** — tema claro/escuro
+- **Responsivo** — adaptável para mobile
+
+## Segurança
+
+- Rate limit de 5 tentativas por minuto no login
+- Validação de entrada em todas as rotas
+- JWT com expiração de 12 horas
+- Verificação de usuário ativo em cada requisição
+- Senhas armazenadas com bcrypt
+- Auditoria em operações CRUD
+- Setup protegido (requer admin autenticado)
 
 ## Scripts
 
@@ -36,24 +43,26 @@ Sistema de gestão de estoque, eventos, notas fiscais e financeiro desenvolvido 
 npm run dev        # desenvolvimento
 npm run build      # produção
 npm run lint       # verificação de lint
-npm run type-check # verificação de tipos TypeScript
+npm run type-check # verificação de tipos
 ```
 
-## Configuração
+## Deploy
 
-```bash
-npm install
-npx prisma generate
-npm run dev
-```
+Projetado para deploy na Vercel com Turso como banco de dados.
 
-### Deploy no Vercel
+### Variáveis de ambiente
 
-Variáveis de ambiente necessárias na Vercel:
+| Variável | Descrição |
+|---|---|
+| `DATABASE_URL` | URL de conexão do Turso |
+| `DATABASE_AUTH_TOKEN` | Token de autenticação do Turso |
+| `JWT_SECRET` | Chave secreta para JWT |
+| `DEFAULT_ADMIN_PASS` | Senha inicial do admin (opcional) |
+| `DEFAULT_OPER_PASS` | Senha inicial do operador (opcional) |
 
-- `DATABASE_URL` — URL de conexão do Turso
-- `DATABASE_AUTH_TOKEN` — token de autenticação do Turso
-- `JWT_SECRET` — chave secreta para JWT
+### Setup inicial
+
+Após o deploy, faça uma requisição `POST /api/setup` com token de admin para criar as tabelas e usuários iniciais.
 
 ## Créditos
 
