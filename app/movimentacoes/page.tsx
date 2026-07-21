@@ -81,7 +81,7 @@ export default function StockMovementsPage() {
             {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Custo Unit.</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">R$ {Number(selectedProduct.unitCost).toFixed(2)}</div></div>}
             {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Preço Unit.</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">R$ {Number(selectedProduct.salePrice).toFixed(2)}</div></div>}
             <div><label className="label">Descrição</label><input className="input-field" value={form.description} onChange={set('description')} /></div>
-            <div><label className="label">Evento</label><select className="input-field" value={form.eventId} onChange={set('eventId')}><option value="">Nenhum</option>            {activeEvents.map((ev: any) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}</select></div>
+            {form.type !== 'Entrada' && <div><label className="label">Evento</label><select className="input-field" value={form.eventId} onChange={set('eventId')}><option value="">Nenhum</option>            {activeEvents.map((ev: any) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}</select></div>}
           </div>
           <div className="flex justify-end gap-3"><button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">Registrar</button></div>
         </form>
