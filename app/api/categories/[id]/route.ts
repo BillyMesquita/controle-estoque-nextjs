@@ -10,8 +10,14 @@ export async function DELETE(
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const { id } = await params
+  const { searchParams } = new URL(req.url)
+  const migrateTo = searchParams.get('migrateTo')
 
   try {
+    if (migrateTo) {
+      await prisma.product.updateMany({ where: { categoryId: id }, data: { categoryId: migrateTo } })
+    }
+
     const count = await prisma.product.count({ where: { categoryId: id } })
     if (count > 0) {
       return NextResponse.json({ error: `Categoria possui ${count} produto(s) vinculado(s)` }, { status: 400 })
