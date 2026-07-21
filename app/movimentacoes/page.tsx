@@ -36,8 +36,10 @@ export default function StockMovementsPage() {
       setMovements(movData.items)
       setTotal(movData.total)
       setTotalPages(movData.totalPages)
-      setProducts(await prodRes.json())
-      setEvents(await evRes.json())
+      const prodData = await prodRes.json()
+      setProducts(prodData.items || prodData)
+      const evData = await evRes.json()
+      setEvents(evData.items || evData)
     } catch { /* ignore */ }
     finally { setLoading(false) }
   }

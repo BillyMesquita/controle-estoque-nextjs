@@ -15,7 +15,8 @@ export default function FinancialPage() {
   useEffect(() => {
     api('/api/events').then(async r => {
       if (!r.ok) return
-      const list = await r.json()
+      const data = await r.json()
+      const list = data.items || data
       const filtered = list.filter((ev: any) => ev.status !== 'Cancelado')
       setEvents(filtered)
       if (filtered.length > 0) setSelectedEventId(filtered.reduce((a: any, b: any) => new Date(a.createdAt) > new Date(b.createdAt) ? a : b).id)

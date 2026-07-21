@@ -23,9 +23,9 @@ export default function EditarProdutoPage() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).then(setCategories)
-    fetch('/api/suppliers', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).then(setSuppliers)
+    fetch('/api/suppliers', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).then(data => setSuppliers(data.items || data))
     api(`/api/products/${params.id}`).then(async r => {
-      if (!r.ok) { router.push('/produtos'); return }
+      if (!r.ok) { router.push('/estoque'); return }
       const data = await r.json()
       setForm({ name: data.name, description: data.description || '', categoryId: data.categoryId, supplierId: data.supplierId || '', unitCost: String(data.unitCost), salePrice: String(data.salePrice), currentStock: String(data.currentStock), unit: data.unit })
       setLoading(false)
@@ -42,7 +42,7 @@ export default function EditarProdutoPage() {
         body: JSON.stringify({ ...form, unitCost: parseFloat(form.unitCost), salePrice: parseFloat(form.salePrice), currentStock: parseFloat(form.currentStock) }),
       })
       if (!res.ok) { setError('Erro ao salvar'); return }
-      router.push('/produtos')
+      router.push('/estoque')
     } catch { setError('Erro ao salvar') }
     finally { setSaving(false) }
   }
@@ -54,7 +54,7 @@ export default function EditarProdutoPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/produtos" className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft className="w-5 h-5 text-gray-600" /></Link>
+        <Link href="/estoque" className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft className="w-5 h-5 text-gray-600" /></Link>
         <div><h1 className="text-2xl font-bold text-gray-900">Editar Produto</h1></div>
       </div>
       <form onSubmit={handleSubmit} className="card space-y-5">
@@ -84,7 +84,7 @@ export default function EditarProdutoPage() {
         </div>
         <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-600">Estoque atual: <strong>{form.currentStock}</strong> {form.unit} — gerencie o estoque pelas movimentações.</div>
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-          <Link href="/produtos" className="btn-secondary">Cancelar</Link>
+          <Link href="/estoque" className="btn-secondary">Cancelar</Link>
           <button type="submit" disabled={saving} className="btn-primary"><Save className="w-4 h-4" /> {saving ? 'Salvando...' : 'Salvar'}</button>
         </div>
       </form>

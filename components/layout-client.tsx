@@ -7,7 +7,7 @@ import { Package, TrendingUp, FileText, BarChart3, Shield, LogOut, Menu, X, Box,
 import { useTheme } from 'next-themes'
 
 const navItems = [
-  { to: '/produtos', label: 'Produtos', icon: Package, roles: ['Operador', 'Administrador'] },
+  { to: '/estoque', label: 'Estoque', icon: Package, roles: ['Operador', 'Administrador'] },
   { to: '/movimentacoes', label: 'Movimentações', icon: TrendingUp, roles: ['Operador', 'Administrador'] },
   { to: '/notas', label: 'Notas Fiscais', icon: FileText, roles: ['Operador', 'Administrador'] },
   { to: '/fornecedores', label: 'Fornecedores', icon: Building2, roles: ['Operador', 'Administrador'] },

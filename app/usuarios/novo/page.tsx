@@ -8,7 +8,7 @@ import { ArrowLeft, Save, Shield } from 'lucide-react'
 import { api } from '@/lib/api'
 
 const menuItems = [
-  { to: '/produtos', label: 'Produtos' },
+  { to: '/estoque', label: 'Estoque' },
   { to: '/movimentacoes', label: 'Movimentações' },
   { to: '/notas', label: 'Notas Fiscais' },
   { to: '/fornecedores', label: 'Fornecedores' },

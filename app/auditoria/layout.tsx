@@ -13,7 +13,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     if (!token) { router.push('/login'); return }
     if (user) {
       const parsed = JSON.parse(user)
-      if (parsed.role !== 'Administrador') router.push('/produtos')
+      if (parsed.role !== 'Administrador') router.push('/estoque')
     }
   }, [router])
 
