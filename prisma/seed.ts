@@ -27,7 +27,6 @@ async function main() {
         { name: 'Cervejas Long Neck', description: 'Cervejas long neck' },
         { name: 'Energéticos', description: 'Bebidas energéticas' },
         { name: 'Bebidas sem Álcool', description: 'Refrigerantes, sucos, água' },
-        { name: 'Alimentos', description: 'Salgadinhos, biscoitos, doces' },
         { name: 'Limpeza', description: 'Produtos de limpeza e higiene' },
         { name: 'Padaria', description: 'Pães, bolos, salgados' },
         { name: 'Hortifrúti', description: 'Frutas, verduras e legumes' },
