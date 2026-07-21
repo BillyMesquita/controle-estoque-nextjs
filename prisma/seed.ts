@@ -23,7 +23,10 @@ async function main() {
   if (catCount === 0) {
     await prisma.category.createMany({
       data: [
-        { name: 'Bebidas', description: 'Refrigerantes, sucos, água, cervejas' },
+        { name: 'Cerveja 600ml', description: 'Cervejas em garrafa 600ml' },
+        { name: 'Cervejas Long Neck', description: 'Cervejas long neck' },
+        { name: 'Energéticos', description: 'Bebidas energéticas' },
+        { name: 'Bebidas sem Álcool', description: 'Refrigerantes, sucos, água' },
         { name: 'Alimentos', description: 'Salgadinhos, biscoitos, doces' },
         { name: 'Limpeza', description: 'Produtos de limpeza e higiene' },
         { name: 'Padaria', description: 'Pães, bolos, salgados' },
