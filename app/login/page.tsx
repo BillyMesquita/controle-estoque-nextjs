@@ -67,7 +67,7 @@ export default function LoginPage() {
           </div>
           <button type="submit" disabled={loading} className="btn-primary w-full justify-center">{loading ? 'Entrando...' : 'Entrar'}</button>
         </form>
-        <p className="text-center text-blue-200 text-xs mt-6">Desenvolvido por <strong>Billy Mesquita</strong> — iDark Soluções de Tecnologia</p>
+        <p className="text-center text-blue-200 text-xs mt-6">Desenvolvido por <strong>Billy Mesquita</strong> & <strong>Bruno Gonçalves</strong> — iDark Soluções de Tecnologia</p>
       </div>
     </div>
   )
