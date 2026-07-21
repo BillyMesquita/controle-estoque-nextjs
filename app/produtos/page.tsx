@@ -2,16 +2,29 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Plus, Search, Pencil, Trash2, Package } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, Package, FileText } from 'lucide-react'
 
 interface Product { id: string; sku: string; name: string; description: string | null; categoryId: string; categoryName: string; supplierName: string | null; unitCost: number; salePrice: number; currentStock: number; unit: string; isActive: boolean }
+interface Category { id: string; name: string }
 
 import { api } from '@/lib/api'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [exportCategoryId, setExportCategoryId] = useState('')
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(cats => {
+        setCategories(cats)
+        const cerveja600 = cats.find((c: Category) => c.name === 'Cerveja 600ml')
+        if (cerveja600) setExportCategoryId(cerveja600.id)
+      })
+  }, [])
 
   const load = async () => {
     setLoading(true)
@@ -30,6 +43,15 @@ export default function ProductsPage() {
     load()
   }
 
+  const handleExport = async () => {
+    const params = new URLSearchParams()
+    if (exportCategoryId) params.set('categoryId', exportCategoryId)
+    const res = await api(`/api/products/report?${params}`)
+    const html = await res.text()
+    const blob = new Blob([html], { type: 'text/html' })
+    window.open(URL.createObjectURL(blob), '_blank')
+  }
+
   const filtered = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.sku.toLowerCase().includes(search.toLowerCase())
@@ -39,7 +61,14 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Produtos</h1><p className="text-sm text-gray-500 mt-1">{products.length} cadastrados</p></div>
-        <Link href="/produtos/novo" className="btn-primary"><Plus className="w-4 h-4" /> Novo</Link>
+        <div className="flex items-center gap-2">
+          <select className="input-field w-auto text-sm" value={exportCategoryId} onChange={e => setExportCategoryId(e.target.value)}>
+            <option value="">Todas as categorias</option>
+            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <button onClick={handleExport} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium transition-colors"><FileText className="w-4 h-4" /> Exportar Estoque</button>
+          <Link href="/produtos/novo" className="btn-primary"><Plus className="w-4 h-4" /> Novo</Link>
+        </div>
       </div>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
