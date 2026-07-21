@@ -1,26 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getUserFromRequest } from '@/lib/auth-utils'
+import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
 
 export async function GET(req: NextRequest) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {
     const { searchParams } = new URL(req.url)
     const categoryId = searchParams.get('categoryId')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+    const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
 
     const where: any = { isActive: true }
     if (categoryId) where.categoryId = categoryId
 
-    const products = await prisma.product.findMany({
-      where,
-      include: { category: true, supplier: true },
-      orderBy: { name: 'asc' },
-    })
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: { category: true, supplier: true },
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.product.count({ where }),
+    ])
 
-    const result = products.map(p => ({
+    const items = products.map(p => ({
       id: p.id, sku: p.sku, name: p.name, description: p.description,
       categoryId: p.categoryId, categoryName: p.category.name,
       supplierId: p.supplierId, supplierName: p.supplier?.name || null,
@@ -29,14 +36,14 @@ export async function GET(req: NextRequest) {
       unit: p.unit, isActive: p.isActive, updatedAt: p.updatedAt.toISOString(),
     }))
 
-    return NextResponse.json(result)
+    return NextResponse.json({ items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) })
   } catch {
     return NextResponse.json({ error: 'Erro ao buscar produtos' }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {

@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getUserFromRequest } from '@/lib/auth-utils'
+import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
 
 export async function GET(req: NextRequest) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
   const filterPaymentStatus = searchParams.get('paymentStatus')
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+  const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
 
   const where: any = {}
   if (filterPaymentStatus === 'Cancelado') {
@@ -19,20 +21,25 @@ export async function GET(req: NextRequest) {
   if (searchParams.get('status')) where.status = searchParams.get('status')
   if (filterPaymentStatus && filterPaymentStatus !== 'Atrasado' && filterPaymentStatus !== 'Cancelado') where.paymentStatus = filterPaymentStatus
 
-  const invoices = await prisma.invoice.findMany({
-    where,
-    include: { supplier: true, registeredByUser: { select: { name: true } }, items: { include: { product: true } } },
-    orderBy: { issuedDate: 'desc' },
-  })
+  const [invoices, total] = await Promise.all([
+    prisma.invoice.findMany({
+      where,
+      include: { supplier: true, registeredByUser: { select: { name: true } }, items: { include: { product: true } } },
+      orderBy: { issuedDate: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.invoice.count({ where }),
+  ])
 
-  let result = invoices.map(mapInvoice)
-  if (filterPaymentStatus === 'Atrasado') result = result.filter(i => i.paymentStatus === 'Atrasado')
+  let items = invoices.map(mapInvoice)
+  if (filterPaymentStatus === 'Atrasado') items = items.filter(i => i.paymentStatus === 'Atrasado')
 
-  return NextResponse.json(result)
+  return NextResponse.json({ items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) })
 }
 
 export async function POST(req: NextRequest) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Pencil, Trash2, Building2 } from 'lucide-react'
+import { Pagination } from '@/components/pagination'
 
 interface Supplier { id: string; name: string; document: string | null; contact: string | null; phone: string | null; email: string | null; address: string | null; isActive: boolean }
 
@@ -10,19 +11,25 @@ import { api } from '@/lib/api'
 
 export default function FornecedoresPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
   const load = async () => {
     setLoading(true)
     try {
-      const res = await api('/api/suppliers')
-      setSuppliers(await res.json())
+      const res = await api(`/api/suppliers?page=${page}&pageSize=50`)
+      const data = await res.json()
+      setSuppliers(data.items)
+      setTotal(data.total)
+      setTotalPages(data.totalPages)
     } catch { /* ignore */ }
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [page])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Desativar este fornecedor?')) return
@@ -39,12 +46,12 @@ export default function FornecedoresPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Fornecedores</h1><p className="text-sm text-gray-500 mt-1">{suppliers.length} cadastrados</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900">Fornecedores</h1><p className="text-sm text-gray-500 mt-1">{total} cadastrados</p></div>
         <Link href="/fornecedores/novo" className="btn-primary"><Plus className="w-4 h-4" /> Novo</Link>
       </div>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input className="input-field pl-10" placeholder="Buscar fornecedor..." value={search} onChange={e => setSearch(e.target.value)} />
+        <input className="input-field pl-10" placeholder="Buscar na página..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
       {loading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
       : filtered.length === 0 ? <div className="card text-center py-12 text-gray-400"><Building2 className="w-12 h-12 mx-auto mb-3" /><p>Nenhum fornecedor</p></div>
@@ -76,6 +83,7 @@ export default function FornecedoresPage() {
           ))}
         </div>
       }
+      <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, TrendingUp, ArrowDownRight, ArrowUpRight, Calendar } from 'lucide-react'
+import { Pagination } from '@/components/pagination'
 
 const typeColors: Record<string, string> = { Entrada: 'text-green-600 bg-green-50', Venda: 'text-blue-600 bg-blue-50', Avaria: 'text-red-600 bg-red-50', ConsumoInterno: 'text-orange-600 bg-orange-50' }
 
@@ -9,6 +10,9 @@ import { api } from '@/lib/api'
 
 export default function StockMovementsPage() {
   const [movements, setMovements] = useState<any[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [products, setProducts] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -24,16 +28,21 @@ export default function StockMovementsPage() {
       const params = new URLSearchParams()
       if (filter) params.set('type', filter)
       if (eventFilter) params.set('eventId', eventFilter)
+      params.set('page', page.toString())
+      params.set('pageSize', '50')
       const qs = params.toString()
-      const [movRes, prodRes, evRes] = await Promise.all([api(`/api/stock-movements${qs ? `?${qs}` : ''}`), api('/api/products'), api('/api/events')])
-      setMovements(await movRes.json())
+      const [movRes, prodRes, evRes] = await Promise.all([api(`/api/stock-movements?${qs}`), api('/api/products'), api('/api/events')])
+      const movData = await movRes.json()
+      setMovements(movData.items)
+      setTotal(movData.total)
+      setTotalPages(movData.totalPages)
       setProducts(await prodRes.json())
       setEvents(await evRes.json())
     } catch { /* ignore */ }
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [filter, eventFilter])
+  useEffect(() => { load() }, [filter, eventFilter, page])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,7 +76,7 @@ export default function StockMovementsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Movimentações</h1><p className="text-sm text-gray-500 mt-1">{movements.length} registros</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900">Movimentações</h1><p className="text-sm text-gray-500 mt-1">{total} registros</p></div>
         <button onClick={() => setShowForm(!showForm)} className="btn-primary"><Plus className="w-4 h-4" /> Registrar Movimentação</button>
       </div>
       {showForm && (
@@ -113,6 +122,7 @@ export default function StockMovementsPage() {
               </tr>
             ))}</tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
         </div>
       }
     </div>

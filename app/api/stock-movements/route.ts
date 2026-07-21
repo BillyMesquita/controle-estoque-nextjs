@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getUserFromRequest } from '@/lib/auth-utils'
+import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
 
 export async function GET(req: NextRequest) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
@@ -15,24 +15,34 @@ export async function GET(req: NextRequest) {
   if (searchParams.get('endDate')) where.movedAt = { ...where.movedAt, lte: new Date(searchParams.get('endDate')!) }
   if (searchParams.get('eventId')) where.eventId = searchParams.get('eventId')
 
-  const movements = await prisma.stockMovement.findMany({
-    where,
-    include: { product: true, movedByUser: { select: { name: true } }, event: { select: { name: true } } },
-    orderBy: { movedAt: 'desc' },
-    take: 500,
-  })
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+  const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
 
-  return NextResponse.json(movements.map(m => ({
-    id: m.id, productId: m.productId, productName: m.product.name, productSku: m.product.sku,
-    type: m.type, quantity: Number(m.quantity), unitCost: Number(m.unitCost), unitPrice: Number(m.unitPrice),
-    totalCost: Number(Math.abs(Number(m.quantity)) * Number(m.unitCost)), totalPrice: Number(Math.abs(Number(m.quantity)) * Number(m.unitPrice)),
-    description: m.description, movedByName: m.movedByUser.name, movedAt: m.movedAt.toISOString(),
-    eventId: m.eventId, eventName: m.event?.name || null,
-  })))
+  const [movements, total] = await Promise.all([
+    prisma.stockMovement.findMany({
+      where,
+      include: { product: true, movedByUser: { select: { name: true } }, event: { select: { name: true } } },
+      orderBy: { movedAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.stockMovement.count({ where }),
+  ])
+
+  return NextResponse.json({
+    items: movements.map(m => ({
+      id: m.id, productId: m.productId, productName: m.product.name, productSku: m.product.sku,
+      type: m.type, quantity: Number(m.quantity), unitCost: Number(m.unitCost), unitPrice: Number(m.unitPrice),
+      totalCost: Number(Math.abs(Number(m.quantity)) * Number(m.unitCost)), totalPrice: Number(Math.abs(Number(m.quantity)) * Number(m.unitPrice)),
+      description: m.description, movedByName: m.movedByUser.name, movedAt: m.movedAt.toISOString(),
+      eventId: m.eventId, eventName: m.event?.name || null,
+    })),
+    total, page, pageSize, totalPages: Math.ceil(total / pageSize),
+  })
 }
 
 export async function POST(req: NextRequest) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {
