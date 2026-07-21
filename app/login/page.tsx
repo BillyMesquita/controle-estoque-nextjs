@@ -31,7 +31,7 @@ export default function LoginPage() {
       if (!res.ok) { setError(data.error); return }
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data))
-      router.push('/estoque')
+      router.push('/dashboard')
     } catch { setError('Erro de conexão') }
     finally { setLoading(false) }
   }
