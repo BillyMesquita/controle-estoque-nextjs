@@ -26,10 +26,12 @@ export default function InvoicesPage() {
   const handleDelete = async (id: string) => { if (!confirm('Cancelar nota?')) return; await api(`/api/invoices/${id}`, { method: 'DELETE' }); load() }
   const handlePay = async (id: string) => { if (!confirm('Marcar como paga?')) return; await api(`/api/invoices/${id}/payment-status`, { method: 'PATCH', body: JSON.stringify({ paymentStatus: 'Pago' }) }); load() }
 
+  const visible = filterStatus === '' ? invoices.filter(i => i.paymentStatus !== 'Pago') : invoices
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Notas Fiscais</h1><p className="text-sm text-gray-500 mt-1">{invoices.length} notas</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900">Notas Fiscais</h1><p className="text-sm text-gray-500 mt-1">{visible.length} notas</p></div>
         <Link href="/notas/nova" className="btn-primary"><Plus className="w-4 h-4" /> Nova Nota</Link>
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -38,8 +40,8 @@ export default function InvoicesPage() {
         ))}
       </div>
       {loading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
-      : invoices.length === 0 ? <div className="card text-center py-12 text-gray-400"><FileText className="w-12 h-12 mx-auto mb-3" /><p>Nenhuma nota</p></div>
-      : <div className="grid gap-4">{invoices.map((inv: any) => (
+      : visible.length === 0 ? <div className="card text-center py-12 text-gray-400"><FileText className="w-12 h-12 mx-auto mb-3" /><p>Nenhuma nota</p></div>
+      : <div className="grid gap-4">{visible.map((inv: any) => (
           <div key={inv.id} className="card">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
