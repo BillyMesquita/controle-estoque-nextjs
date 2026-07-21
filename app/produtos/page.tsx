@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Pencil, Trash2, Package, FileText } from 'lucide-react'
+import { Pagination } from '@/components/pagination'
 
 interface Product { id: string; sku: string; name: string; description: string | null; categoryId: string; categoryName: string; supplierName: string | null; unitCost: number; salePrice: number; currentStock: number; unit: string; isActive: boolean }
 interface Category { id: string; name: string }
@@ -11,6 +12,9 @@ import { api } from '@/lib/api'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -26,16 +30,19 @@ export default function ProductsPage() {
       })
   }, [])
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await api('/api/products')
-      setProducts(await res.json())
+      const res = await api(`/api/products?page=${page}&pageSize=50`)
+      const data = await res.json()
+      setProducts(data.items)
+      setTotal(data.total)
+      setTotalPages(data.totalPages)
     } catch { /* ignore */ }
     finally { setLoading(false) }
-  }
+  }, [page])
 
-  useEffect(() => { load().catch(() => {}) }, [])
+  useEffect(() => { load() }, [load])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Desativar este produto?')) return
@@ -60,7 +67,7 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Produtos</h1><p className="text-sm text-gray-500 mt-1">{products.length} cadastrados</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900">Produtos</h1><p className="text-sm text-gray-500 mt-1">{total} cadastrados</p></div>
         <div className="flex items-center gap-2">
           <select className="input-field w-auto text-sm" value={exportCategoryId} onChange={e => setExportCategoryId(e.target.value)}>
             <option value="">Todas as categorias</option>
@@ -72,7 +79,7 @@ export default function ProductsPage() {
       </div>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input className="input-field pl-10" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
+        <input className="input-field pl-10" placeholder="Buscar na página..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
       {loading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
       : filtered.length === 0 ? <div className="card text-center py-12 text-gray-400"><Package className="w-12 h-12 mx-auto mb-3" /><p>Nenhum produto</p></div>
@@ -96,6 +103,7 @@ export default function ProductsPage() {
               </tr>
             ))}</tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
         </div>
       }
     </div>

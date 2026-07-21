@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getUserFromRequest } from '@/lib/auth-utils'
+import { getUserFromRequestAsync } from '@/lib/auth-utils'
 
 import { COST_TYPES } from '@/lib/constants'
 
@@ -8,7 +8,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   const { id } = await params
 
@@ -24,7 +24,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 

@@ -1,25 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getUserFromRequest } from '@/lib/auth-utils'
+import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
 
 export async function GET(req: NextRequest) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {
-    const suppliers = await prisma.supplier.findMany({
-      where: { isActive: true },
-      orderBy: { name: 'asc' },
-    })
-    return NextResponse.json(suppliers)
+    const { searchParams } = new URL(req.url)
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+    const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
+
+    const where = { isActive: true }
+    const [suppliers, total] = await Promise.all([
+      prisma.supplier.findMany({ where, orderBy: { name: 'asc' }, skip: (page - 1) * pageSize, take: pageSize }),
+      prisma.supplier.count({ where }),
+    ])
+    return NextResponse.json({ items: suppliers, total, page, pageSize, totalPages: Math.ceil(total / pageSize) })
   } catch {
     return NextResponse.json({ error: 'Erro ao buscar fornecedores' }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
-  const payload = getUserFromRequest(req)
+  const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {

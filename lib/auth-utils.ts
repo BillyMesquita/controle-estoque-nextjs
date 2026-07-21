@@ -2,7 +2,8 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { NextRequest } from 'next/server'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-dev-secret-key-change-in-production'
+if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET environment variable is not set')
+const JWT_SECRET = process.env.JWT_SECRET
 
 export interface JwtPayload {
   userId: string
