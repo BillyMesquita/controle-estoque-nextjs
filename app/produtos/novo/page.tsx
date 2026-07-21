@@ -10,7 +10,7 @@ interface Supplier { id: string; name: string }
 
 export default function NewProductPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ name: '', description: '', categoryId: '', supplierId: '', unitCost: '', salePrice: '', currentStock: '0', unit: 'UN' })
+  const [form, setForm] = useState({ name: '', description: '', categoryId: '', supplierId: '', unitCost: '', salePrice: '', unit: 'UN' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
@@ -31,7 +31,7 @@ export default function NewProductPage() {
     try {
       const res = await fetch('/api/products', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify({ ...form, unitCost: parseFloat(form.unitCost), salePrice: parseFloat(form.salePrice), currentStock: parseFloat(form.currentStock) }),
+        body: JSON.stringify({ ...form, unitCost: parseFloat(form.unitCost), salePrice: parseFloat(form.salePrice), currentStock: 0 }),
       })
       if (!res.ok) { const d = await res.json(); setError(d.error); return }
       router.push('/produtos')
@@ -71,9 +71,6 @@ export default function NewProductPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Custo Unitário (R$) *</label><input type="number" step="0.01" className="input-field" value={form.unitCost} onChange={set('unitCost')} required /></div>
           <div><label className="label">Preço de Venda (R$) *</label><input type="number" step="0.01" className="input-field" value={form.salePrice} onChange={set('salePrice')} required /></div>
-        </div>
-        <div>
-          <label className="label">Estoque Atual</label><input type="number" step="0.01" className="input-field" value={form.currentStock} onChange={set('currentStock')} />
         </div>
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
           <Link href="/produtos" className="btn-secondary">Cancelar</Link>
