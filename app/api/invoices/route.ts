@@ -58,6 +58,8 @@ export async function POST(req: NextRequest) {
 
     const t0 = Date.now()
 
+    await prisma.$executeRawUnsafe('PRAGMA foreign_keys = OFF')
+
     const invoice = await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: payload.userId }, select: { id: true } })
       if (!user) throw new Error('Usuário não encontrado na transação')
@@ -89,6 +91,8 @@ export async function POST(req: NextRequest) {
         },
       })
     })
+
+    await prisma.$executeRawUnsafe('PRAGMA foreign_keys = ON')
 
     console.log('DEBUG step1 invoice created in transaction', Date.now() - t0, 'ms')
 
