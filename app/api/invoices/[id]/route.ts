@@ -41,7 +41,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const payload = await getUserFromRequestAsync(req)
-  if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
+  if (!payload || payload.role === 'Operador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 
   const invoice = await prisma.invoice.findUnique({ where: { id } })
