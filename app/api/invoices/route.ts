@@ -120,7 +120,11 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json(mapInvoice(invoice), { status: 201 })
-  } catch {
+  } catch (e: any) {
+    if (e?.code === 'P2002') {
+      return NextResponse.json({ error: 'Já existe uma nota com este número' }, { status: 409 })
+    }
+    console.error('Erro ao criar nota:', e)
     return NextResponse.json({ error: 'Erro ao criar nota' }, { status: 500 })
   }
 }
