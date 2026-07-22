@@ -51,9 +51,7 @@ export async function POST(req: NextRequest) {
     `).catch(() => {})
 
     const dto = await req.json()
-    if (!dto.invoiceNumber || typeof dto.invoiceNumber !== 'string' || !dto.invoiceNumber.trim()) {
-      return NextResponse.json({ error: 'Número da nota é obrigatório' }, { status: 400 })
-    }
+    const invoiceNumber = dto.invoiceNumber?.trim() || `NF-${(await prisma.invoice.count()) + 1}`
     if (!dto.supplierName || typeof dto.supplierName !== 'string' || !dto.supplierName.trim()) {
       return NextResponse.json({ error: 'Fornecedor é obrigatório' }, { status: 400 })
     }
@@ -73,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     const invoice = await prisma.invoice.create({
       data: {
-        invoiceNumber: dto.invoiceNumber.trim(),
+        invoiceNumber,
         invoiceType: dto.invoiceType,
         supplierName: dto.supplierName.trim(),
         customerName: dto.customerName.trim(),
@@ -114,7 +112,7 @@ export async function POST(req: NextRequest) {
           data: {
             productId: item.productId, type: 'Entrada', quantity: item.quantity,
             unitCost: item.unitCost, unitPrice: 0,
-            description: `Entrada automática - NF ${dto.invoiceNumber}`,
+            description: `Entrada automática - NF ${invoiceNumber}`,
             referenceId: invoice.id, referenceType: 'INVOICE', movedBy: payload.userId,
           },
         })
@@ -124,8 +122,8 @@ export async function POST(req: NextRequest) {
     await createAuditLog({
       userId: payload.userId, action: 'Criar', entity: 'Invoice',
       entityId: invoice.id, module: 'INVOICE',
-      description: `Nota ${dto.invoiceType} #${dto.invoiceNumber} criada`,
-      newValues: JSON.stringify({ invoiceNumber: dto.invoiceNumber, type: dto.invoiceType, totalAmount }),
+      description: `Nota ${dto.invoiceType} #${invoiceNumber} criada`,
+      newValues: JSON.stringify({ invoiceNumber, type: dto.invoiceType, totalAmount }),
     })
 
     const full = await prisma.invoice.findUnique({
