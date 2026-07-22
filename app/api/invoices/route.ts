@@ -67,6 +67,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const t0 = Date.now()
+
     const invoice = await prisma.invoice.create({
       data: {
         invoiceNumber: dto.invoiceNumber,
@@ -80,20 +82,25 @@ export async function POST(req: NextRequest) {
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         notes: dto.notes || null,
         registeredBy: payload.userId,
-        ...(dto.items?.length ? {
-          items: {
-            create: dto.items.map((i: any) => ({
-              productId: i.productId, quantity: i.quantity, unitCost: i.unitCost,
-            })),
-          },
-        } : {}),
-      },
-      include: {
-        supplier: true,
-        registeredByUser: { select: { name: true } },
-        items: { include: { product: true } },
       },
     })
+
+    console.log('DEBUG step1 invoice created', Date.now() - t0, 'ms')
+
+    if (dto.items?.length) {
+      for (const item of dto.items) {
+        await prisma.invoiceItem.create({
+          data: {
+            invoiceId: invoice.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            unitCost: item.unitCost,
+          },
+        })
+      }
+    }
+
+    console.log('DEBUG step2 items created', Date.now() - t0, 'ms')
 
     if (dto.invoiceType === 'Fiscal' && dto.items?.length) {
       for (const item of dto.items) {
@@ -116,6 +123,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    console.log('DEBUG step3 movements created', Date.now() - t0, 'ms')
+
     await createAuditLog({
       userId: payload.userId, action: 'Criar', entity: 'Invoice',
       entityId: invoice.id, module: 'INVOICE',
@@ -123,7 +132,19 @@ export async function POST(req: NextRequest) {
       newValues: JSON.stringify({ invoiceNumber: dto.invoiceNumber, type: dto.invoiceType, totalAmount }),
     })
 
-    return NextResponse.json(mapInvoice(invoice), { status: 201 })
+    console.log('DEBUG step4 audit log created', Date.now() - t0, 'ms')
+
+    const full = await prisma.invoice.findUnique({
+      where: { id: invoice.id },
+      include: {
+        supplier: true,
+        registeredByUser: { select: { name: true } },
+        items: { include: { product: true } },
+      },
+    })
+    if (!full) throw new Error('Invoice not found after create')
+
+    return NextResponse.json(mapInvoice(full), { status: 201 })
   } catch (e: any) {
     if (e?.code === 'P2002') {
       return NextResponse.json({ error: 'Já existe uma nota com este número' }, { status: 409 })
