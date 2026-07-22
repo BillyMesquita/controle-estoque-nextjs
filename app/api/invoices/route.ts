@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         issuedDate: new Date(dto.issuedDate),
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         notes: dto.notes || null,
-        registeredBy: payload.userId,
+        registeredByUser: { connect: { id: payload.userId } },
         ...(dto.items?.length ? {
           items: {
             create: dto.items.map((i: any) => ({
