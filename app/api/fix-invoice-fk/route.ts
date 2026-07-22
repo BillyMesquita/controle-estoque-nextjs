@@ -11,22 +11,22 @@ export async function POST(req: NextRequest) {
   try {
     const result: any = {}
 
-    const fkInfo: any = await prisma.$queryRawUnsafe('PRAGMA foreign_key_list(invoices)')
-    result.currentFK = fkInfo
+    const tablesToCheck = ['invoices', 'stock_movements', 'audit_logs', 'invoice_items']
+    for (const tbl of tablesToCheck) {
+      const fk: any = await prisma.$queryRawUnsafe(`PRAGMA foreign_key_list(${tbl})`)
+      result[tbl] = fk
+    }
 
-    const tables: any = await prisma.$queryRawUnsafe("SELECT name FROM sqlite_master WHERE type='table' AND name='users_old'")
-    result.hasUsersOld = tables.length > 0
+    const tables: any = await prisma.$queryRawUnsafe("SELECT name FROM sqlite_master WHERE type='table'")
+    result.allTables = tables.map((t: any) => t.name)
 
-    if (tables.length > 0) {
+    if (tables.some((t: any) => t.name === 'users_old')) {
       await prisma.$executeRawUnsafe(`
         INSERT OR IGNORE INTO users_old (id, name, username, password_hash, role, permissions, is_active, created_at, updated_at)
         SELECT id, name, username, password_hash, role, permissions, is_active, created_at, updated_at FROM users
       `)
       result.synced = true
     }
-
-    const verifyFK: any = await prisma.$queryRawUnsafe('PRAGMA foreign_key_list(invoices)')
-    result.afterFK = verifyFK
 
     return NextResponse.json(result)
   } catch (e: any) {
