@@ -56,12 +56,15 @@ export async function POST(req: NextRequest) {
     }
     const totalAmount = dto.items?.length ? dto.items.reduce((s: number, i: any) => s + i.quantity * i.unitCost, 0) : 0
 
+    const fkList: any = await prisma.$queryRawUnsafe('PRAGMA foreign_key_list(invoices)')
+    console.log('DEBUG FK list:', JSON.stringify(fkList))
+
+    const allUsers: any = await prisma.$queryRawUnsafe('SELECT id, name, role FROM users')
+    console.log('DEBUG all users:', JSON.stringify(allUsers))
+
     const t0 = Date.now()
 
     console.log('DEBUG userId:', payload.userId, 'role:', payload.role, 'username:', payload.username)
-
-    const userCheck = await prisma.user.findUnique({ where: { id: payload.userId }, select: { id: true, name: true, role: true } })
-    console.log('DEBUG userCheck:', JSON.stringify(userCheck))
 
     const id = crypto.randomUUID()
     const invoice = await prisma.invoice.create({
