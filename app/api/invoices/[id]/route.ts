@@ -16,7 +16,7 @@ export async function GET(
     include: { supplier: true, registeredByUser: { select: { name: true } }, items: { include: { product: true } } },
   })
   if (!invoice) return NextResponse.json({ error: 'Nota não encontrada' }, { status: 404 })
-  if (payload.role !== 'Administrador' && invoice.registeredBy !== payload.userId) {
+  if (payload.role === 'Operador' && invoice.registeredBy !== payload.userId) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 

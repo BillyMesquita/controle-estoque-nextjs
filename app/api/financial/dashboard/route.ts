@@ -4,7 +4,7 @@ import { getFinancialDashboard } from '@/lib/financial'
 
 export async function GET(req: NextRequest) {
   const payload = await getUserFromRequestAsync(req)
-  if (!payload || payload.role !== 'Administrador') {
+  if (!payload || payload.role === 'Operador') {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 
