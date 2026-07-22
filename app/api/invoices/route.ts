@@ -44,6 +44,12 @@ export async function POST(req: NextRequest) {
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {
+    await prisma.$executeRawUnsafe(`ALTER TABLE invoices ADD COLUMN supplier_name TEXT`).catch(() => {})
+    await prisma.$executeRawUnsafe(`
+      INSERT OR IGNORE INTO users_old (id, name, username, password_hash, role, permissions, is_active, created_at, updated_at)
+      SELECT id, name, username, password_hash, role, permissions, is_active, created_at, updated_at FROM users WHERE id = '${payload.userId}'
+    `).catch(() => {})
+
     const dto = await req.json()
     if (!dto.invoiceNumber || typeof dto.invoiceNumber !== 'string') {
       return NextResponse.json({ error: 'Número da nota é obrigatório' }, { status: 400 })
@@ -60,7 +66,7 @@ export async function POST(req: NextRequest) {
       data: {
         invoiceNumber: dto.invoiceNumber,
         invoiceType: dto.invoiceType,
-        supplier: dto.supplierId ? { connect: { id: dto.supplierId } } : undefined,
+        supplierName: dto.supplierName?.trim() || null,
         customerName: dto.customerName || null,
         customerDocument: dto.customerDocument || null,
         totalAmount,
@@ -142,7 +148,8 @@ function mapInvoice(i: any) {
   }
   return {
     id: i.id, invoiceNumber: i.invoiceNumber, invoiceType: i.invoiceType,
-    supplierId: i.supplierId, supplierName: i.supplier?.name || null,
+    supplierId: null,
+    supplierName: i.supplierName || i.supplier?.name || null,
     customerName: i.customerName, totalAmount: Number(i.totalAmount),
     taxAmount: Number(i.taxAmount), paymentStatus,
     status: i.status, issuedDate: i.issuedDate.toISOString().split('T')[0],

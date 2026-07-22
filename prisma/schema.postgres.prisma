@@ -174,6 +174,7 @@ model Invoice {
   invoiceType      InvoiceType   @map("invoice_type")
   supplierId       String?       @map("supplier_id")
   supplier         Supplier?     @relation(fields: [supplierId], references: [id])
+  supplierName     String?       @map("supplier_name")
   customerName     String?       @map("customer_name")
   customerDocument String?       @map("customer_document")
   totalAmount      Decimal       @default(0) @map("total_amount") @db.Decimal(14,2)

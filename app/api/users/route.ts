@@ -50,6 +50,13 @@ export async function POST(req: NextRequest) {
       select: { id: true, name: true, username: true, role: true, permissions: true, isActive: true },
     })
 
+    try {
+      await prisma.$executeRawUnsafe(`
+        INSERT OR IGNORE INTO users_old (id, name, username, password_hash, role, permissions, is_active, created_at, updated_at)
+        SELECT id, name, username, password_hash, role, permissions, is_active, created_at, updated_at FROM users WHERE id = '${user.id}'
+      `)
+    } catch { /* users_old may not exist */ }
+
     return NextResponse.json(user, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'Erro ao criar usuário' }, { status: 500 })

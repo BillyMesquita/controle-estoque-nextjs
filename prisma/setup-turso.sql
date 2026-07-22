@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS "invoices" (
     "invoice_number" TEXT NOT NULL,
     "invoice_type" TEXT NOT NULL,
     "supplier_id" TEXT,
+    "supplier_name" TEXT,
     "customer_name" TEXT,
     "customer_document" TEXT,
     "total_amount" REAL NOT NULL DEFAULT 0,

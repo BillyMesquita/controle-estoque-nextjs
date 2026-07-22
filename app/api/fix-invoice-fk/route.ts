@@ -28,6 +28,13 @@ export async function POST(req: NextRequest) {
       result.synced = true
     }
 
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE invoices ADD COLUMN supplier_name TEXT`)
+      result.migratedSupplierName = true
+    } catch (e: any) {
+      result.migratedSupplierName = { message: String(e.message || e) }
+    }
+
     return NextResponse.json(result)
   } catch (e: any) {
     console.error('Erro ao fix FK:', e)

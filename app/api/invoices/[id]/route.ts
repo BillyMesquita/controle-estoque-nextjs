@@ -22,7 +22,7 @@ export async function GET(
 
   return NextResponse.json({
     id: invoice.id, invoiceNumber: invoice.invoiceNumber, invoiceType: invoice.invoiceType,
-    supplierId: invoice.supplierId, supplierName: invoice.supplier?.name || null,
+    supplierId: null, supplierName: invoice.supplierName || invoice.supplier?.name || null,
     customerName: invoice.customerName, totalAmount: Number(invoice.totalAmount),
     taxAmount: Number(invoice.taxAmount), paymentStatus: invoice.paymentStatus,
     status: invoice.status, issuedDate: invoice.issuedDate.toISOString().split('T')[0],
