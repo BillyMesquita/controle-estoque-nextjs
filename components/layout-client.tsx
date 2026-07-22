@@ -39,13 +39,12 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
     router.push('/login')
   }
 
-  const isAdmin = user?.role === 'Administrador'
   const userPermissions = user?.permissions
   const filteredNav = navItems.filter(item => {
-    if (!item.roles.includes(user?.role || 'Operador')) return false
-    if (isAdmin) return true
-    if (userPermissions && Array.isArray(userPermissions)) return userPermissions.includes(item.to)
-    return true
+    if (userPermissions && Array.isArray(userPermissions) && userPermissions.length > 0) {
+      return userPermissions.includes(item.to)
+    }
+    return item.roles.includes(user?.role || 'Operador')
   })
 
   return (
