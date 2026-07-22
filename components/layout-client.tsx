@@ -7,13 +7,13 @@ import { Package, TrendingUp, FileText, BarChart3, Shield, LogOut, Menu, X, Box,
 import { useTheme } from 'next-themes'
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: BarChart3, roles: ['Operador', 'Administrador'] },
+  { to: '/dashboard', label: 'Dashboard', icon: BarChart3, roles: ['Operador', 'Financeiro', 'Administrador'] },
   { to: '/estoque', label: 'Estoque', icon: Package, roles: ['Administrador'] },
-  { to: '/movimentacoes', label: 'Movimentações', icon: TrendingUp, roles: ['Operador', 'Administrador'] },
-  { to: '/notas', label: 'Notas Fiscais', icon: FileText, roles: ['Operador', 'Administrador'] },
-  { to: '/fornecedores', label: 'Fornecedores', icon: Building2, roles: ['Operador', 'Administrador'] },
-  { to: '/eventos', label: 'Eventos', icon: Calendar, roles: ['Operador', 'Administrador'] },
-  { to: '/financeiro', label: 'Financeiro', icon: BarChart3, roles: ['Administrador'] },
+  { to: '/movimentacoes', label: 'Movimentações', icon: TrendingUp, roles: ['Operador', 'Financeiro', 'Administrador'] },
+  { to: '/notas', label: 'Notas Fiscais', icon: FileText, roles: ['Operador', 'Financeiro', 'Administrador'] },
+  { to: '/fornecedores', label: 'Fornecedores', icon: Building2, roles: ['Operador', 'Financeiro', 'Administrador'] },
+  { to: '/eventos', label: 'Eventos', icon: Calendar, roles: ['Operador', 'Financeiro', 'Administrador'] },
+  { to: '/financeiro', label: 'Financeiro', icon: BarChart3, roles: ['Financeiro', 'Administrador'] },
   { to: '/auditoria', label: 'Auditoria', icon: Shield, roles: ['Administrador'] },
   { to: '/usuarios', label: 'Usuários', icon: Users, roles: ['Administrador'] },
 ]

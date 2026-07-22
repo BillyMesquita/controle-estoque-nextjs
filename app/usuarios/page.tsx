@@ -46,7 +46,7 @@ export default function UsuariosPage() {
                 <td className="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100">{u.name}</td>
                 <td className="py-3 pr-4 text-gray-500">{u.username}</td>
                 <td className="py-3 pr-4">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'Administrador' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'}`}>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'Administrador' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' : u.role === 'Financeiro' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'}`}>
                     <Shield className="w-3 h-3" /> {u.role}
                   </span>
                 </td>

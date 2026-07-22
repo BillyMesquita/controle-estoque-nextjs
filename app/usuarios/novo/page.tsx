@@ -62,7 +62,7 @@ export default function NovoUsuarioPage() {
         <div className="grid grid-cols-2 gap-4">
           <div><label className="label">Senha *</label><input name="password" type="password" className="input-field" value={form.password} onChange={handleChange} required /></div>
           <div><label className="label">Função</label><select name="role" className="input-field" value={form.role} onChange={handleChange}>
-            <option value="Operador">Operador</option><option value="Administrador">Administrador</option>
+            <option value="Operador">Operador</option><option value="Financeiro">Financeiro</option><option value="Administrador">Administrador</option>
           </select></div>
         </div>
         <div className="pt-2">

@@ -75,7 +75,7 @@ export default function EditarUsuarioPage() {
         <div className="grid grid-cols-2 gap-4">
           <div><label className="label">Nova Senha (deixe vazio para manter)</label><input name="password" type="password" className="input-field" value={form.password} onChange={handleChange} /></div>
           <div><label className="label">Função</label><select name="role" className="input-field" value={form.role} onChange={handleChange}>
-            <option value="Operador">Operador</option><option value="Administrador">Administrador</option>
+            <option value="Operador">Operador</option><option value="Financeiro">Financeiro</option><option value="Administrador">Administrador</option>
           </select></div>
         </div>
         <div className="flex items-center gap-2">
