@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       data: {
         invoiceNumber: dto.invoiceNumber,
         invoiceType: dto.invoiceType,
-        supplierId: dto.supplierId || null,
+        supplier: dto.supplierId ? { connect: { id: dto.supplierId } } : undefined,
         customerName: dto.customerName || null,
         customerDocument: dto.customerDocument || null,
         totalAmount,
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         issuedDate: new Date(dto.issuedDate),
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         notes: dto.notes || null,
-        registeredBy: payload.userId,
+        registeredByUser: { connect: { id: payload.userId } },
       },
     })
 
