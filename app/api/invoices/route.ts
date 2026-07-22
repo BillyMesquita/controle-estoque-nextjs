@@ -67,21 +67,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (supplierId) {
-      const s = await prisma.supplier.findUnique({ where: { id: supplierId }, select: { id: true } })
-      if (!s) throw new Error(`Fornecedor ${supplierId} não encontrado no banco`)
-    }
-
-    const user = await prisma.user.findUnique({ where: { id: payload.userId }, select: { id: true } })
-    if (!user) throw new Error(`Usuário ${payload.userId} não encontrado no banco`)
-
-    const id = crypto.randomUUID()
-    console.log('DEBUG raw insert:', { id, invoiceNumber: dto.invoiceNumber, invoiceType: dto.invoiceType, supplierId, totalAmount, registeredBy: payload.userId, issuedDate: dto.issuedDate })
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO invoices (id, invoice_number, invoice_type, supplier_id, customer_name, customer_document, total_amount, tax_amount, payment_status, status, issued_date, due_date, notes, registered_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pendente', 'Registrada', ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-      id, dto.invoiceNumber, dto.invoiceType, supplierId, dto.customerName || null, dto.customerDocument || null, totalAmount, 0, new Date(dto.issuedDate).toISOString(), dto.dueDate ? new Date(dto.dueDate).toISOString() : null, dto.notes || null, payload.userId
-    )
-    const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id } })
+    const invoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber: dto.invoiceNumber,
+        invoiceType: dto.invoiceType,
+        supplierId,
+        customerName: dto.customerName || null,
+        customerDocument: dto.customerDocument || null,
+        totalAmount,
+        taxAmount: 0,
+        issuedDate: new Date(dto.issuedDate),
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+        notes: dto.notes || null,
+        registeredBy: payload.userId,
+        ...(dto.items?.length ? {
+          items: {
+            create: dto.items.map((i: any) => ({
+              productId: i.productId, quantity: i.quantity, unitCost: i.unitCost,
+            })),
+          },
+        } : {}),
+      },
+      include: {
+        supplier: true,
+        registeredByUser: { select: { name: true } },
+        items: { include: { product: true } },
+      },
+    })
 
     if (dto.invoiceType === 'Fiscal' && dto.items?.length) {
       for (const item of dto.items) {
