@@ -56,39 +56,41 @@ export async function POST(req: NextRequest) {
     }
     const totalAmount = dto.items?.length ? dto.items.reduce((s: number, i: any) => s + i.quantity * i.unitCost, 0) : 0
 
-    let supplierId = dto.supplierId || null
-    if (!supplierId && dto.supplierName?.trim()) {
-      const existing = await prisma.supplier.findFirst({ where: { name: dto.supplierName.trim() } })
-      if (existing) {
-        supplierId = existing.id
-      } else {
-        const created = await prisma.supplier.create({ data: { name: dto.supplierName.trim() } })
-        supplierId = created.id
+    const invoice = await prisma.$transaction(async (tx) => {
+      let supplierId = dto.supplierId || null
+      if (!supplierId && dto.supplierName?.trim()) {
+        const existing = await tx.supplier.findFirst({ where: { name: dto.supplierName.trim() } })
+        if (existing) {
+          supplierId = existing.id
+        } else {
+          const created = await tx.supplier.create({ data: { name: dto.supplierName.trim() } })
+          supplierId = created.id
+        }
       }
-    }
 
-    const invoice = await prisma.invoice.create({
-      data: {
-        invoiceNumber: dto.invoiceNumber,
-        invoiceType: dto.invoiceType,
-        supplierId,
-        customerName: dto.customerName || null,
-        customerDocument: dto.customerDocument || null,
-        totalAmount,
-        taxAmount: 0,
-        issuedDate: new Date(dto.issuedDate),
-        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
-        notes: dto.notes || null,
-        registeredByUser: { connect: { id: payload.userId } },
-        ...(dto.items?.length ? {
-          items: {
-            create: dto.items.map((i: any) => ({
-              productId: i.productId, quantity: i.quantity, unitCost: i.unitCost,
-            })),
-          },
-        } : {}),
-      },
-      include: { supplier: true, registeredByUser: { select: { name: true } }, items: { include: { product: true } } },
+      return tx.invoice.create({
+        data: {
+          invoiceNumber: dto.invoiceNumber,
+          invoiceType: dto.invoiceType,
+          supplierId,
+          customerName: dto.customerName || null,
+          customerDocument: dto.customerDocument || null,
+          totalAmount,
+          taxAmount: 0,
+          issuedDate: new Date(dto.issuedDate),
+          dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+          notes: dto.notes || null,
+          registeredBy: payload.userId,
+          ...(dto.items?.length ? {
+            items: {
+              create: dto.items.map((i: any) => ({
+                productId: i.productId, quantity: i.quantity, unitCost: i.unitCost,
+              })),
+            },
+          } : {}),
+        },
+        include: { supplier: true, registeredByUser: { select: { name: true } }, items: { include: { product: true } } },
+      })
     })
 
     if (dto.invoiceType === 'Fiscal' && dto.items?.length) {
