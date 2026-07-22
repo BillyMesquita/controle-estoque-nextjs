@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
 
   const where: any = {}
+  if (payload.role !== 'Administrador') where.registeredBy = payload.userId
   if (filterPaymentStatus === 'Cancelado') {
     where.deletedAt = { not: null }
   } else {
