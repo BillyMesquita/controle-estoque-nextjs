@@ -56,17 +56,6 @@ export async function POST(req: NextRequest) {
     }
     const totalAmount = dto.items?.length ? dto.items.reduce((s: number, i: any) => s + i.quantity * i.unitCost, 0) : 0
 
-    const fkList: any = await prisma.$queryRawUnsafe('PRAGMA foreign_key_list(invoices)')
-    console.log('DEBUG FK list:', JSON.stringify(fkList))
-
-    const allUsers: any = await prisma.$queryRawUnsafe('SELECT id, name, role FROM users')
-    console.log('DEBUG all users:', JSON.stringify(allUsers))
-
-    const t0 = Date.now()
-
-    console.log('DEBUG userId:', payload.userId, 'role:', payload.role, 'username:', payload.username)
-
-    const id = crypto.randomUUID()
     const invoice = await prisma.invoice.create({
       data: {
         invoiceNumber: dto.invoiceNumber,
@@ -83,8 +72,6 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    console.log('DEBUG step1 invoice created in transaction', Date.now() - t0, 'ms')
-
     if (dto.items?.length) {
       for (const item of dto.items) {
         await prisma.invoiceItem.create({
@@ -97,8 +84,6 @@ export async function POST(req: NextRequest) {
         })
       }
     }
-
-    console.log('DEBUG step2 items created', Date.now() - t0, 'ms')
 
     if (dto.invoiceType === 'Fiscal' && dto.items?.length) {
       for (const item of dto.items) {
@@ -121,16 +106,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log('DEBUG step3 movements created', Date.now() - t0, 'ms')
-
     await createAuditLog({
       userId: payload.userId, action: 'Criar', entity: 'Invoice',
       entityId: invoice.id, module: 'INVOICE',
       description: `Nota ${dto.invoiceType} #${dto.invoiceNumber} criada`,
       newValues: JSON.stringify({ invoiceNumber: dto.invoiceNumber, type: dto.invoiceType, totalAmount }),
     })
-
-    console.log('DEBUG step4 audit log created', Date.now() - t0, 'ms')
 
     const full = await prisma.invoice.findUnique({
       where: { id: invoice.id },
