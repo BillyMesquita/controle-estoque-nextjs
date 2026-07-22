@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@libsql/client'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
 
@@ -59,21 +58,27 @@ export async function POST(req: NextRequest) {
 
     const t0 = Date.now()
 
-    const ts = new URL(process.env.DATABASE_URL || '').searchParams
-    const turso = createClient({
-      url: (process.env.DATABASE_URL || '').replace(/^\ufeff/, ''),
-      authToken: (process.env.DATABASE_AUTH_TOKEN || '').replace(/^\ufeff/, ''),
-    })
+    console.log('DEBUG userId:', payload.userId, 'role:', payload.role, 'username:', payload.username)
+
+    const userCheck = await prisma.user.findUnique({ where: { id: payload.userId }, select: { id: true, name: true, role: true } })
+    console.log('DEBUG userCheck:', JSON.stringify(userCheck))
 
     const id = crypto.randomUUID()
-    const { rows } = await turso.execute({
-      sql: `INSERT INTO invoices (id, invoice_number, invoice_type, supplier_id, customer_name, customer_document, total_amount, tax_amount, payment_status, status, issued_date, due_date, notes, registered_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pendente', 'Registrada', ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-      args: [id, dto.invoiceNumber, dto.invoiceType, dto.supplierId || null, dto.customerName || null, dto.customerDocument || null, totalAmount, 0, new Date(dto.issuedDate).toISOString(), dto.dueDate ? new Date(dto.dueDate).toISOString() : null, dto.notes || null, payload.userId],
+    const invoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber: dto.invoiceNumber,
+        invoiceType: dto.invoiceType,
+        supplierId: dto.supplierId || null,
+        customerName: dto.customerName || null,
+        customerDocument: dto.customerDocument || null,
+        totalAmount,
+        taxAmount: 0,
+        issuedDate: new Date(dto.issuedDate),
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+        notes: dto.notes || null,
+        registeredBy: payload.userId,
+      },
     })
-
-    console.log('DEBUG libsql INSERT rows', rows)
-
-    const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id } })
 
     console.log('DEBUG step1 invoice created in transaction', Date.now() - t0, 'ms')
 
