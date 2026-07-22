@@ -8,7 +8,7 @@ import { useTheme } from 'next-themes'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: BarChart3, roles: ['Operador', 'Administrador'] },
-  { to: '/estoque', label: 'Estoque', icon: Package, roles: ['Operador', 'Administrador'] },
+  { to: '/estoque', label: 'Estoque', icon: Package, roles: ['Administrador'] },
   { to: '/movimentacoes', label: 'Movimentações', icon: TrendingUp, roles: ['Operador', 'Administrador'] },
   { to: '/notas', label: 'Notas Fiscais', icon: FileText, roles: ['Operador', 'Administrador'] },
   { to: '/fornecedores', label: 'Fornecedores', icon: Building2, roles: ['Operador', 'Administrador'] },
