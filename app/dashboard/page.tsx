@@ -7,9 +7,14 @@ import { api } from '@/lib/api'
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
+  const [role, setRole] = useState('')
   const [products, setProducts] = useState<{ total: number; stock: number }>({ total: 0, stock: 0 })
   const [events, setEvents] = useState<{ total: number; next: any | null }>({ total: 0, next: null })
   const [movements, setMovements] = useState<{ total: number; today: number }>({ total: 0, today: 0 })
+
+  useEffect(() => {
+    try { const u = JSON.parse(localStorage.getItem('user') || '{}'); if (u.role) setRole(u.role) } catch {}
+  }, [])
 
   useEffect(() => {
     let ignore = false
@@ -44,18 +49,21 @@ export default function DashboardPage() {
     return () => { ignore = true }
   }, [])
 
+  const isAdmin = role === 'Administrador'
+  const isFinanceiro = role === 'Financeiro'
+
   const quickActions = [
-    { to: '/estoque/novo', label: 'Novo Produto', icon: Package, color: 'bg-blue-500' },
-    { to: '/movimentacoes', label: 'Movimentações', icon: TrendingUp, color: 'bg-emerald-500' },
-    { to: '/eventos/novo', label: 'Novo Evento', icon: Calendar, color: 'bg-purple-500' },
-    { to: '/notas/nova', label: 'Nova Nota', icon: FileText, color: 'bg-amber-500' },
+    ...(isAdmin ? [{ to: '/estoque/novo', label: 'Novo Produto', icon: Package, color: 'bg-blue-500' as const }] : []),
+    { to: '/movimentacoes', label: 'Movimentações', icon: TrendingUp, color: 'bg-emerald-500' as const },
+    ...(isAdmin || isFinanceiro ? [{ to: '/eventos/novo', label: 'Novo Evento', icon: Calendar, color: 'bg-purple-500' as const }] : []),
+    { to: '/notas/nova', label: 'Nova Nota', icon: FileText, color: 'bg-amber-500' as const },
   ]
 
   const statCards = [
-    { to: '/estoque', label: 'Produtos', value: products.total, sub: `${products.stock} unidades`, icon: Box, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/30' },
-    { to: '/movimentacoes', label: 'Movimentações Hoje', value: movements.today, sub: `${movements.total} total`, icon: ShoppingCart, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
-    { to: '/eventos', label: 'Eventos', value: events.total, sub: events.next ? new Date(events.next.startDate).toLocaleDateString('pt-BR') : 'Nenhum', icon: Calendar, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/30' },
-    { to: '/fornecedores', label: 'Fornecedores', value: '—', sub: 'Cadastrados', icon: Building2, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30' },
+    ...(isAdmin ? [{ to: '/estoque' as const, label: 'Produtos', value: products.total, sub: `${products.stock} unidades`, icon: Box, color: 'text-blue-600' as const, bg: 'bg-blue-50 dark:bg-blue-900/30' as const }] : []),
+    { to: '/movimentacoes' as const, label: 'Movimentações Hoje', value: movements.today, sub: `${movements.total} total`, icon: ShoppingCart, color: 'text-emerald-600' as const, bg: 'bg-emerald-50 dark:bg-emerald-900/30' as const },
+    { to: '/eventos' as const, label: 'Eventos', value: events.total, sub: events.next ? new Date(events.next.startDate).toLocaleDateString('pt-BR') : 'Nenhum', icon: Calendar, color: 'text-purple-600' as const, bg: 'bg-purple-50 dark:bg-purple-900/30' as const },
+    { to: '/fornecedores' as const, label: 'Fornecedores', value: '—', sub: 'Cadastrados', icon: Building2, color: 'text-amber-600' as const, bg: 'bg-amber-50 dark:bg-amber-900/30' as const },
   ]
 
   if (loading) {
