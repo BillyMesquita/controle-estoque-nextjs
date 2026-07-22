@@ -1,4 +1,5 @@
 import { createClient } from '@libsql/client'
+import { fileURLToPath } from 'url'
 import * as fs from 'fs'
 import * as path from 'path'
 import crypto from 'crypto'
@@ -15,6 +16,8 @@ if (!url || !authToken) {
 const turso = createClient({ url, authToken })
 
 async function main() {
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = path.dirname(__filename)
   const sqlPath = path.resolve(__dirname, '..', 'prisma', 'setup-turso.sql')
   const sql = fs.readFileSync(sqlPath, 'utf-8')
 

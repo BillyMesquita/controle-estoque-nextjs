@@ -36,11 +36,10 @@ export async function POST(req: NextRequest) {
     const productCount = await prisma.product.count()
 
     return NextResponse.json({
-      status: 'ok',
-      message: 'Banco configurado com sucesso!',
+      status: 'ok', message: 'Banco configurado com sucesso!',
       stats: { usuarios: userCount, produtos: productCount },
     })
   } catch (e: any) {
-    return NextResponse.json({ status: 'error', message: e.message || 'Erro ao conectar no banco de dados' }, { status: 500 })
+    return NextResponse.json({ error: e.message || 'Erro ao conectar no banco de dados' }, { status: 500 })
   }
 }

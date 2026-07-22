@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Pencil, Trash2, Building2 } from 'lucide-react'
 import { Pagination } from '@/components/pagination'
@@ -16,17 +16,20 @@ export default function FornecedoresPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const isMounted = useRef(true)
+  useEffect(() => { return () => { isMounted.current = false } }, [])
 
   const load = async () => {
     setLoading(true)
     try {
       const res = await api(`/api/suppliers?page=${page}&pageSize=50`)
       const data = await res.json()
+      if (!isMounted.current) return
       setSuppliers(data.items)
       setTotal(data.total)
       setTotalPages(data.totalPages)
     } catch { /* ignore */ }
-    finally { setLoading(false) }
+    finally { if (isMounted.current) setLoading(false) }
   }
 
   useEffect(() => { load() }, [page])

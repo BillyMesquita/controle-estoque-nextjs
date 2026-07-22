@@ -9,21 +9,24 @@ export default function AuditPage() {
   const [filter, setFilter] = useState({ module: '', action: '', page: 1 })
   const [total, setTotal] = useState(0)
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ page: filter.page.toString(), pageSize: '50' })
-      if (filter.module) params.set('module', filter.module)
-      if (filter.action) params.set('action', filter.action)
-      const res = await fetch(`/api/audit-logs?${params}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-      const data = await res.json()
-      setLogs(data.items)
-      setTotal(data.total)
-    } catch { /* ignore */ }
-    finally { setLoading(false) }
-  }
-
-  useEffect(() => { load().catch(() => {}) }, [filter.page, filter.module, filter.action])
+  useEffect(() => {
+    let ignore = false
+    const load = async () => {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams({ page: filter.page.toString(), pageSize: '50' })
+        if (filter.module) params.set('module', filter.module)
+        if (filter.action) params.set('action', filter.action)
+        const res = await fetch(`/api/audit-logs?${params}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+        const data = await res.json()
+        if (!ignore) setLogs(data.items)
+        if (!ignore) setTotal(data.total)
+      } catch { /* ignore */ }
+      finally { if (!ignore) setLoading(false) }
+    }
+    load()
+    return () => { ignore = true }
+  }, [filter.page, filter.module, filter.action])
 
   return (
     <div className="space-y-6">

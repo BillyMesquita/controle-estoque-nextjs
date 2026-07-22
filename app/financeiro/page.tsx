@@ -13,14 +13,17 @@ export default function FinancialPage() {
   const [selectedEventId, setSelectedEventId] = useState('')
 
   useEffect(() => {
+    let ignore = false
     api('/api/events').then(async r => {
       if (!r.ok) return
       const data = await r.json()
+      if (ignore) return
       const list = data.items || data
       const filtered = list.filter((ev: any) => ev.status !== 'Cancelado')
       setEvents(filtered)
       if (filtered.length > 0) setSelectedEventId(filtered.reduce((a: any, b: any) => new Date(a.createdAt) > new Date(b.createdAt) ? a : b).id)
     }).catch(() => {})
+    return () => { ignore = true }
   }, [])
 
   function calcStartDate(p: string) {
@@ -31,6 +34,7 @@ export default function FinancialPage() {
   }
 
   useEffect(() => {
+    let ignore = false
     setLoading(true)
     const endDate = new Date().toISOString().split('T')[0]
     const startDate = calcStartDate(period)
@@ -39,7 +43,7 @@ export default function FinancialPage() {
     api(url).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
       return r.json()
-    }).then(setData).catch(() => { setData(null) }).finally(() => setLoading(false))
+    }).then(data => { if (!ignore) setData(data) }).catch(() => { if (!ignore) setData(null) }).finally(() => { if (!ignore) setLoading(false) })
   }, [period, selectedEventId])
 
   const metrics = data ? [

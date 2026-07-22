@@ -8,6 +8,7 @@ export async function DELETE(
 ) {
   const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  if (payload.role === 'Operador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
 
   const { id } = await params
   const { searchParams } = new URL(req.url)

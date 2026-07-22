@@ -69,8 +69,8 @@ export async function PUT(
     })
 
     return new NextResponse(null, { status: 204 })
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao excluir produto' }, { status: 500 })
   }
 }
 
@@ -82,16 +82,20 @@ export async function DELETE(
   if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 
-  const product = await prisma.product.findUnique({ where: { id } })
-  if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
+  try {
+    const product = await prisma.product.findUnique({ where: { id } })
+    if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
 
-  await prisma.product.update({ where: { id }, data: { isActive: false } })
+    await prisma.product.update({ where: { id }, data: { isActive: false } })
 
-  await createAuditLog({
-    userId: payload.userId, action: 'Excluir', entity: 'Product',
-    entityId: product.id, module: 'PRODUCT',
-    description: `Produto ${product.name} desativado`,
-  })
+    await createAuditLog({
+      userId: payload.userId, action: 'Excluir', entity: 'Product',
+      entityId: product.id, module: 'PRODUCT',
+      description: `Produto ${product.name} desativado`,
+    })
 
-  return new NextResponse(null, { status: 204 })
+    return new NextResponse(null, { status: 204 })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao excluir produto' }, { status: 500 })
+  }
 }

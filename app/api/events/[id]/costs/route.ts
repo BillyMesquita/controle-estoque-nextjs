@@ -35,6 +35,11 @@ export async function PUT(
     const data = await req.json()
     const costs: { type: string; amount: number }[] = data.costs || []
 
+    const invalidType = costs.find(c => !COST_TYPES.includes(c.type))
+    if (invalidType) {
+      return NextResponse.json({ error: `Tipo de custo inválido: ${invalidType.type}` }, { status: 400 })
+    }
+
     await prisma.eventCost.deleteMany({ where: { eventId: id } })
     if (costs.length > 0) {
       await prisma.eventCost.createMany({
@@ -46,7 +51,7 @@ export async function PUT(
       })
     }
 
-    return NextResponse.json({ success: true })
+    return new NextResponse(null, { status: 204 })
   } catch {
     return NextResponse.json({ error: 'Erro ao salvar custos' }, { status: 500 })
   }

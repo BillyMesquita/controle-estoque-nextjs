@@ -27,32 +27,37 @@ export async function PUT(
 ) {
   const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  if (payload.role === 'Operador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 
-  const supplier = await prisma.supplier.findUnique({ where: { id } })
-  if (!supplier) return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
+  try {
+    const supplier = await prisma.supplier.findUnique({ where: { id } })
+    if (!supplier) return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
 
-  const data = await req.json()
-  await prisma.supplier.update({
-    where: { id },
-    data: {
-      ...(data.name && { name: data.name }),
-      ...(data.document !== undefined && { document: data.document }),
-      ...(data.contact !== undefined && { contact: data.contact }),
-      ...(data.phone !== undefined && { phone: data.phone }),
-      ...(data.email !== undefined && { email: data.email }),
-      ...(data.address !== undefined && { address: data.address }),
-    },
-  })
+    const data = await req.json()
+    await prisma.supplier.update({
+      where: { id },
+      data: {
+        ...(data.name && { name: data.name }),
+        ...(data.document !== undefined && { document: data.document }),
+        ...(data.contact !== undefined && { contact: data.contact }),
+        ...(data.phone !== undefined && { phone: data.phone }),
+        ...(data.email !== undefined && { email: data.email }),
+        ...(data.address !== undefined && { address: data.address }),
+      },
+    })
 
-  await createAuditLog({
-    userId: payload.userId, action: 'Atualizar', entity: 'Supplier',
-    entityId: id, module: 'SUPPLIER',
-    description: `Fornecedor ${supplier.name} atualizado`,
-    newValues: JSON.stringify(data),
-  })
+    await createAuditLog({
+      userId: payload.userId, action: 'Atualizar', entity: 'Supplier',
+      entityId: id, module: 'SUPPLIER',
+      description: `Fornecedor ${supplier.name} atualizado`,
+      newValues: JSON.stringify(data),
+    })
 
-  return new NextResponse(null, { status: 204 })
+    return new NextResponse(null, { status: 204 })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao atualizar fornecedor' }, { status: 500 })
+  }
 }
 
 export async function DELETE(

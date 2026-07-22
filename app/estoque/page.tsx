@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Pencil, Trash2, Package, FileText } from 'lucide-react'
 import { Pagination } from '@/components/pagination'
@@ -21,25 +21,32 @@ export default function ProductsPage() {
   const [exportCategoryId, setExportCategoryId] = useState('')
 
   useEffect(() => {
+    let ignore = false
     const token = localStorage.getItem('token')
     fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(cats => {
+        if (ignore) return
         setCategories(cats)
         const cerveja600 = cats.find((c: Category) => c.name === 'Cerveja 600ml')
         if (cerveja600) setExportCategoryId(cerveja600.id)
       })
+    return () => { ignore = true }
   }, [])
+
+  const isMounted = useRef(true)
+  useEffect(() => { return () => { isMounted.current = false } }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const res = await api(`/api/products?page=${page}&pageSize=50`)
       const data = await res.json()
+      if (!isMounted.current) return
       setProducts(data.items)
       setTotal(data.total)
       setTotalPages(data.totalPages)
     } catch { /* ignore */ }
-    finally { setLoading(false) }
+    finally { if (isMounted.current) setLoading(false) }
   }, [page])
 
   useEffect(() => { load() }, [load])

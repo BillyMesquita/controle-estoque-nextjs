@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Plus, TrendingUp, ArrowDownRight, ArrowUpRight, Calendar } from 'lucide-react'
 import { Pagination } from '@/components/pagination'
 
@@ -21,6 +21,8 @@ export default function StockMovementsPage() {
   const [form, setForm] = useState({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '' })
   const [error, setError] = useState('')
   const [eventFilter, setEventFilter] = useState('')
+  const isMounted = useRef(true)
+  useEffect(() => { return () => { isMounted.current = false } }, [])
 
   const load = async () => {
     setLoading(true)
@@ -33,15 +35,18 @@ export default function StockMovementsPage() {
       const qs = params.toString()
       const [movRes, prodRes, evRes] = await Promise.all([api(`/api/stock-movements?${qs}`), api('/api/products'), api('/api/events')])
       const movData = await movRes.json()
+      if (!isMounted.current) return
       setMovements(movData.items)
       setTotal(movData.total)
       setTotalPages(movData.totalPages)
       const prodData = await prodRes.json()
+      if (!isMounted.current) return
       setProducts(prodData.items || prodData)
       const evData = await evRes.json()
+      if (!isMounted.current) return
       setEvents(evData.items || evData)
     } catch { /* ignore */ }
-    finally { setLoading(false) }
+    finally { if (isMounted.current) setLoading(false) }
   }
 
   useEffect(() => { load() }, [filter, eventFilter, page])

@@ -1,7 +1,10 @@
 import { execSync } from 'child_process'
 import { copyFileSync, existsSync, writeFileSync } from 'fs'
+import { fileURLToPath } from 'url'
 import * as path from 'path'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const ROOT = path.resolve(__dirname, '..')
 const isPostgres = process.env.DATABASE_URL?.startsWith('postgres')
 

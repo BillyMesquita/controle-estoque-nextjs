@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Package, TrendingUp, Calendar, FileText, Plus, ArrowRight, Building2, Box, ShoppingCart, Users } from 'lucide-react'
+import { Package, TrendingUp, Calendar, FileText, Plus, ArrowRight, Building2, Box, ShoppingCart } from 'lucide-react'
 import { api } from '@/lib/api'
 
 export default function DashboardPage() {
@@ -12,11 +12,13 @@ export default function DashboardPage() {
   const [movements, setMovements] = useState<{ total: number; today: number }>({ total: 0, today: 0 })
 
   useEffect(() => {
+    let ignore = false
     Promise.all([
       api('/api/products?page=1&pageSize=1').then(r => r.json()),
       api('/api/events?page=1&pageSize=50').then(r => r.json()),
       api('/api/stock-movements?page=1&pageSize=1').then(r => r.json()),
     ]).then(([p, e, m]) => {
+      if (ignore) return
       setProducts({ total: p.total || 0, stock: 0 })
       setEvents({ total: e.total || 0, next: null })
       setMovements({ total: m.total || 0, today: 0 })
@@ -38,7 +40,8 @@ export default function DashboardPage() {
       }
 
       setLoading(false)
-    }).catch(() => setLoading(false))
+    }).catch(() => { if (!ignore) setLoading(false) })
+    return () => { ignore = true }
   }, [])
 
   const quickActions = [

@@ -7,38 +7,42 @@ export async function GET(req: NextRequest) {
   const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-  const { searchParams } = new URL(req.url)
-  const where: any = { deletedAt: null }
-  if (searchParams.get('productId')) where.productId = searchParams.get('productId')
-  if (searchParams.get('type')) where.type = searchParams.get('type')
-  if (searchParams.get('startDate')) where.movedAt = { ...where.movedAt, gte: new Date(searchParams.get('startDate')!) }
-  if (searchParams.get('endDate')) where.movedAt = { ...where.movedAt, lte: new Date(searchParams.get('endDate')!) }
-  if (searchParams.get('eventId')) where.eventId = searchParams.get('eventId')
+  try {
+    const { searchParams } = new URL(req.url)
+    const where: any = { deletedAt: null }
+    if (searchParams.get('productId')) where.productId = searchParams.get('productId')
+    if (searchParams.get('type')) where.type = searchParams.get('type')
+    if (searchParams.get('startDate')) where.movedAt = { ...where.movedAt, gte: new Date(searchParams.get('startDate')!) }
+    if (searchParams.get('endDate')) where.movedAt = { ...where.movedAt, lte: new Date(searchParams.get('endDate')!) }
+    if (searchParams.get('eventId')) where.eventId = searchParams.get('eventId')
 
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
-  const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+    const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
 
-  const [movements, total] = await Promise.all([
-    prisma.stockMovement.findMany({
-      where,
-      include: { product: true, movedByUser: { select: { name: true } }, event: { select: { name: true } } },
-      orderBy: { movedAt: 'desc' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.stockMovement.count({ where }),
-  ])
+    const [movements, total] = await Promise.all([
+      prisma.stockMovement.findMany({
+        where,
+        include: { product: true, movedByUser: { select: { name: true } }, event: { select: { name: true } } },
+        orderBy: { movedAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.stockMovement.count({ where }),
+    ])
 
-  return NextResponse.json({
-    items: movements.map(m => ({
-      id: m.id, productId: m.productId, productName: m.product.name, productSku: m.product.sku,
-      type: m.type, quantity: Number(m.quantity), unitCost: Number(m.unitCost), unitPrice: Number(m.unitPrice),
-      totalCost: Number(Math.abs(Number(m.quantity)) * Number(m.unitCost)), totalPrice: Number(Math.abs(Number(m.quantity)) * Number(m.unitPrice)),
-      description: m.description, movedByName: m.movedByUser.name, movedAt: m.movedAt.toISOString(),
-      eventId: m.eventId, eventName: m.event?.name || null,
-    })),
-    total, page, pageSize, totalPages: Math.ceil(total / pageSize),
-  })
+    return NextResponse.json({
+      items: movements.map(m => ({
+        id: m.id, productId: m.productId, productName: m.product.name, productSku: m.product.sku,
+        type: m.type, quantity: Number(m.quantity), unitCost: Number(m.unitCost), unitPrice: Number(m.unitPrice),
+        totalCost: Number(Math.abs(Number(m.quantity)) * Number(m.unitCost)), totalPrice: Number(Math.abs(Number(m.quantity)) * Number(m.unitPrice)),
+        description: m.description, movedByName: m.movedByUser.name, movedAt: m.movedAt.toISOString(),
+        eventId: m.eventId, eventName: m.event?.name || null,
+      })),
+      total, page, pageSize, totalPages: Math.ceil(total / pageSize),
+    })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao listar movimentações' }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {

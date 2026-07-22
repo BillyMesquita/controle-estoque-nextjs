@@ -29,8 +29,10 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    const stored = localStorage.getItem('user')
-    if (stored) setUser(JSON.parse(stored))
+    try {
+      const stored = localStorage.getItem('user')
+      if (stored) setUser(JSON.parse(stored))
+    } catch {}
   }, [])
 
   const handleLogout = () => {

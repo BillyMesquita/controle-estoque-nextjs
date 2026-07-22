@@ -26,6 +26,7 @@ export async function PUT(
 ) {
   const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  if (payload.role === 'Operador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 
   const event = await prisma.event.findUnique({ where: { id } })
@@ -54,6 +55,7 @@ export async function DELETE(
 ) {
   const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  if (payload.role === 'Operador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 
   try {

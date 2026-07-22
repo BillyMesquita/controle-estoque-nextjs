@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Plus, FileText, Trash2, DollarSign } from 'lucide-react'
 import { Pagination } from '@/components/pagination'
@@ -15,6 +15,8 @@ export default function InvoicesPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState('')
+  const isMounted = useRef(true)
+  useEffect(() => { return () => { isMounted.current = false } }, [])
 
   const load = async () => {
     setLoading(true)
@@ -25,11 +27,12 @@ export default function InvoicesPage() {
       params.set('pageSize', '50')
       const res = await api(`/api/invoices?${params}`)
       const data = await res.json()
+      if (!isMounted.current) return
       setInvoices(data.items)
       setTotal(data.total)
       setTotalPages(data.totalPages)
     } catch { /* ignore */ }
-    finally { setLoading(false) }
+    finally { if (isMounted.current) setLoading(false) }
   }
 
   useEffect(() => { load() }, [filterStatus, page])

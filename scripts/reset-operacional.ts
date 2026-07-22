@@ -11,6 +11,7 @@ async function main() {
     { table: 'invoice_items', label: 'Itens de Nota Fiscal' },
     { table: 'invoices', label: 'Notas Fiscais' },
     { table: 'stock_movements', label: 'Movimentações de Estoque' },
+    { table: 'event_costs', label: 'Custos de Eventos' },
     { table: 'products', label: 'Produtos' },
     { table: 'suppliers', label: 'Fornecedores' },
     { table: 'audit_logs', label: 'Logs de Auditoria' },

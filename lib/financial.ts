@@ -41,6 +41,14 @@ export async function getFinancialDashboard(startDate?: string, endDate?: string
     ...v,
   })).sort((a, b) => a.ano - b.ano || a.mes - b.mes)
 
+  if (custosAdicionais > 0 && mensal.length > 0) {
+    const totalValorBruto = mensal.reduce((s, m) => s + m.valorBruto, 0)
+    for (const m of mensal) {
+      const share = totalValorBruto > 0 ? m.valorBruto / totalValorBruto : 1 / mensal.length
+      m.valorLiquido -= custosAdicionais * share
+    }
+  }
+
   return {
     vendas, valorBruto,
     custoProdutosVendidos: cpv, custosAdicionais, custosDetalhado, valorLiquido,

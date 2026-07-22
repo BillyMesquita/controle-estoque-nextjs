@@ -38,6 +38,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result)
   } catch (e: any) {
     console.error('Erro ao fix FK:', e)
-    return NextResponse.json({ error: String(e.message || e) }, { status: 500 })
+    return NextResponse.json({ error: 'Erro ao executar manutenção' }, { status: 500 })
   }
 }
