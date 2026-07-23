@@ -48,28 +48,31 @@ async function main() {
     console.log('✓ Categorias criadas')
   }
 
-  const existing = await turso.execute("SELECT id FROM users WHERE username = 'admin'")
-  if (existing.rows.length === 0) {
-    const adminPass = process.env.DEFAULT_ADMIN_PASS || 'REMOVIDO'
-    const operPass = process.env.DEFAULT_OPER_PASS || 'REMOVIDO'
-    const adminHash = bcrypt.hashSync(adminPass, 12)
-    const operHash = bcrypt.hashSync(operPass, 12)
+  const adminPass = process.env.DEFAULT_ADMIN_PASS || 'REMOVIDO'
+  const adminHash = bcrypt.hashSync(adminPass, 12)
 
+  const existing = await turso.execute("SELECT id FROM users WHERE username = 'adminbilly'")
+  if (existing.rows.length === 0) {
     await turso.execute({
       sql: "INSERT INTO users (id, name, username, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
-      args: [crypto.randomUUID(), 'Admin', 'admin', adminHash, 'Administrador'],
+      args: [crypto.randomUUID(), 'Administrador', 'adminbilly', adminHash, 'Administrador'],
     })
+    console.log('✓ Usuário adminbilly criado')
+  } else {
     await turso.execute({
-      sql: "INSERT INTO users (id, name, username, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
-      args: [crypto.randomUUID(), 'Operador', 'operador', operHash, 'Operador'],
+      sql: "UPDATE users SET password_hash = ?, role = 'Administrador', is_active = 1 WHERE username = 'adminbilly'",
+      args: [adminHash],
     })
+    console.log('✓ Usuário adminbilly atualizado')
+  }
+
+  const configCount = await turso.execute("SELECT COUNT(*) as c FROM system_configs WHERE key = 'company_name'")
+  if (Number(configCount.rows[0].c) === 0) {
     await turso.execute({
       sql: "INSERT INTO system_configs (id, key, value, description, updated_at) VALUES (?, ?, ?, ?, datetime('now'))",
       args: [crypto.randomUUID(), 'company_name', 'Mercado Cultural', 'Nome da empresa'],
     })
-    console.log('✓ Seed concluído')
-  } else {
-    console.log('✓ Seed já executado anteriormente')
+    console.log('✓ Configurações criadas')
   }
 
   const count = await turso.execute('SELECT COUNT(*) as c FROM users')

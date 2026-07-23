@@ -104,7 +104,7 @@ npm run db:setup       # cria SQLite + seed (admin / operador)
 npm run dev            # http://localhost:3000
 ```
 
-**Credenciais padrão (dev):** `admin` / `REMOVIDO` | `operador` / `REMOVIDO`
+**Credencial padrão (dev):** `adminbilly` / `REMOVIDO`
 
 ## Deploy (Vercel + Turso)
 

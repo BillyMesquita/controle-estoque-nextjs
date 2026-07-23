@@ -12,6 +12,7 @@
     "db:studio": "prisma studio",
     "db:setup": "tsx scripts/setup-db.ts",
     "db:setup-turso": "tsx scripts/setup-turso.ts",
+    "db:reset": "tsx scripts/reset-operacional.ts",
     "lint": "next lint",
     "type-check": "tsc --noEmit"
   },
