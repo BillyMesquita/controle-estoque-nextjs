@@ -38,7 +38,7 @@ Sistema de gestão de estoque, eventos, notas fiscais e financeiro.
 |---|---|
 | **Administrador** | Tudo (usuários, auditoria, setup, estoque, notas, eventos, financeiro, fornecedores) |
 | **Financeiro** | Notas, eventos, financeiro, movimentações, fornecedores. Sem acesso a estoque, auditoria, usuários |
-| **Operador** | Apenas próprias notas, visualização de eventos/movimentações. Sem criar/editar eventos, sem cancelar notas |
+| **Operador** | Registrar movimentações, próprias notas, visualizar eventos. Sem acesso a estoque, custos, financeiro |
 
 ## Segurança
 
@@ -68,6 +68,7 @@ npm run db:seed          # tsx prisma/seed.ts
 npm run db:studio        # prisma studio
 npm run db:setup         # tsx scripts/setup-db.ts (SQLite local)
 npm run db:setup-turso   # tsx scripts/setup-turso.ts (Turso)
+npm run db:reset         # limpa dados operacionais (mantém categorias)
 ```
 
 ## Schema Switching
