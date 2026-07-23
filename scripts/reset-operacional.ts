@@ -1,50 +1,60 @@
-import { PrismaClient } from '@prisma/client'
+import { createClient } from '@libsql/client'
+import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
 async function main() {
+  const url = process.env.DATABASE_URL
+  const authToken = process.env.DATABASE_AUTH_TOKEN
   const adminPass = process.env.DEFAULT_ADMIN_PASS
-  if (!adminPass) {
-    console.error('DEFAULT_ADMIN_PASS não definida. Configure a variável de ambiente.')
+
+  if (!url || !authToken || !adminPass) {
+    console.error('Defina DATABASE_URL, DATABASE_AUTH_TOKEN e DEFAULT_ADMIN_PASS')
     process.exit(1)
   }
 
-  console.log('=== Reset para Produção ===')
+  const db = createClient({ url, authToken })
+
+  console.log('=== Reset para Produção (Turso) ===')
   console.log('Mantendo: Categorias, Configurações do Sistema')
 
   const cleanups = [
-    { table: 'audit_logs', label: 'Logs de Auditoria' },
-    { table: 'invoice_items', label: 'Itens de Nota Fiscal' },
-    { table: 'invoices', label: 'Notas Fiscais' },
-    { table: 'stock_movements', label: 'Movimentações de Estoque' },
-    { table: 'event_costs', label: 'Custos de Eventos' },
-    { table: 'events', label: 'Eventos' },
-    { table: 'products', label: 'Produtos' },
-    { table: 'suppliers', label: 'Fornecedores' },
-    { table: 'users_old', label: 'Usuários (old)' },
+    'audit_logs', 'invoice_items', 'invoices', 'stock_movements',
+    'event_costs', 'events', 'products', 'suppliers',
   ]
 
-  for (const { table, label } of cleanups) {
+  for (const table of cleanups) {
     try {
-      const deleted: any = await prisma.$executeRawUnsafe(`DELETE FROM ${table}`)
-      console.log(`  ✓ ${label}: ${deleted} registros removidos`)
+      const r = await db.execute(`DELETE FROM ${table}`)
+      console.log(`  ✓ ${table}: ${r.rowsAffected} registros removidos`)
     } catch {
-      console.log(`  ~ ${label}: tabela não encontrada`)
+      console.log(`  ~ ${table}: tabela não encontrada`)
     }
   }
 
-  const hash = await bcrypt.hash(adminPass, 12)
+  try {
+    await db.execute("DELETE FROM users WHERE username != 'adminbilly'")
+    console.log('  ✓ Usuários antigos removidos')
+  } catch {
+    console.log('  ~ users: tabela não encontrada')
+  }
 
-  await prisma.$executeRawUnsafe(`DELETE FROM users WHERE username != 'adminbilly'`)
-  await prisma.user.upsert({
-    where: { username: 'adminbilly' },
-    update: { passwordHash: hash, role: 'Administrador', isActive: true },
-    create: { name: 'Administrador', username: 'adminbilly', passwordHash: hash, role: 'Administrador' },
-  })
-  console.log('  ✓ Usuário adminbilly atualizado')
+  const hash = bcrypt.hashSync(adminPass, 12)
+  const existing = await db.execute("SELECT id FROM users WHERE username = 'adminbilly'")
+  if (existing.rows.length === 0) {
+    await db.execute({
+      sql: "INSERT INTO users (id, name, username, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
+      args: [crypto.randomUUID(), 'Administrador', 'adminbilly', hash, 'Administrador'],
+    })
+    console.log('  ✓ Usuário adminbilly criado')
+  } else {
+    await db.execute({
+      sql: "UPDATE users SET password_hash = ?, is_active = 1 WHERE username = 'adminbilly'",
+      args: [hash],
+    })
+    console.log('  ✓ Senha do adminbilly atualizada')
+  }
 
   console.log('\n=== Reset concluído! ===')
 }
 
-main()
-  .catch((e) => { console.error('Erro:', e); process.exit(1) })
-  .finally(() => prisma.$disconnect())
+main().catch((e) => { console.error('Erro:', e); process.exit(1) })
