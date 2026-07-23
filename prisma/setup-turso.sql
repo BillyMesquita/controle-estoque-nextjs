@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS "stock_movements" (
     "unit_cost" REAL NOT NULL DEFAULT 0,
     "unit_price" REAL NOT NULL DEFAULT 0,
     "description" TEXT,
+    "destino" TEXT,
     "reference_id" TEXT,
     "reference_type" TEXT,
     "event_id" TEXT,

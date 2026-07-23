@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
         id: m.id, productId: m.productId, productName: m.product.name, productSku: m.product.sku,
         type: m.type, quantity: Number(m.quantity), unitCost: Number(m.unitCost), unitPrice: Number(m.unitPrice),
         totalCost: Number(Math.abs(Number(m.quantity)) * Number(m.unitCost)), totalPrice: Number(Math.abs(Number(m.quantity)) * Number(m.unitPrice)),
-        description: m.description, movedByName: m.movedByUser.name, movedAt: m.movedAt.toISOString(),
+        description: m.description, destino: m.destino || null, movedByName: m.movedByUser.name, movedAt: m.movedAt.toISOString(),
         eventId: m.eventId, eventName: m.event?.name || null,
       })),
       total, page, pageSize, totalPages: Math.ceil(total / pageSize),
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     if (!dto.productId || !dto.type || dto.quantity === undefined) {
       return NextResponse.json({ error: 'Produto, tipo e quantidade são obrigatórios' }, { status: 400 })
     }
-    if (!['Entrada', 'Venda', 'Avaria', 'ConsumoInterno'].includes(dto.type)) {
+    if (!['Entrada', 'Venda', 'Avaria', 'ConsumoInterno', 'Saida'].includes(dto.type)) {
       return NextResponse.json({ error: 'Tipo de movimentação inválido' }, { status: 400 })
     }
     const qtyNum = Math.abs(Number(dto.quantity))
@@ -63,6 +63,9 @@ export async function POST(req: NextRequest) {
     }
     if (dto.type !== 'Entrada' && !dto.eventId) {
       return NextResponse.json({ error: 'Evento é obrigatório para este tipo de movimentação' }, { status: 400 })
+    }
+    if (dto.type === 'Saida' && !dto.destino) {
+      return NextResponse.json({ error: 'Destino é obrigatório para Saída' }, { status: 400 })
     }
 
     const product = await prisma.product.findUnique({ where: { id: dto.productId } })
@@ -82,7 +85,8 @@ export async function POST(req: NextRequest) {
       data: {
         productId: dto.productId, type: dto.type, quantity,
         unitCost: unitCostEntrada, unitPrice: unitPriceFinal,
-        description: dto.description, movedBy: payload.userId,
+        description: dto.description, destino: dto.destino || undefined,
+        movedBy: payload.userId,
         eventId: dto.eventId || undefined,
       },
     })
@@ -117,7 +121,7 @@ export async function POST(req: NextRequest) {
       unitPrice: Number(movement.unitPrice),
       totalCost: Number(Math.abs(Number(movement.quantity)) * Number(movement.unitCost)),
       totalPrice: Number(Math.abs(Number(movement.quantity)) * Number(movement.unitPrice)),
-      description: movement.description, movedByName: payload.name, movedAt: movement.movedAt.toISOString(),
+      description: movement.description, destino: movement.destino || null, movedByName: payload.name, movedAt: movement.movedAt.toISOString(),
       eventId: movement.eventId, eventName: null,
     }, { status: 201 })
   } catch {

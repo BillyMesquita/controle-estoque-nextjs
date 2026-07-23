@@ -121,6 +121,7 @@ model StockMovement {
   unitCost      Float    @default(0) @map("unit_cost")
   unitPrice     Float    @default(0) @map("unit_price")
   description   String?
+  destino       String?
   referenceId   String?  @map("reference_id")
   referenceType String?  @map("reference_type")
   eventId       String?  @map("event_id")

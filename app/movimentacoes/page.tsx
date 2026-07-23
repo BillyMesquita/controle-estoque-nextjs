@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Plus, TrendingUp, ArrowDownRight, ArrowUpRight, Calendar } from 'lucide-react'
 import { Pagination } from '@/components/pagination'
 
-const typeColors: Record<string, string> = { Entrada: 'text-green-600 bg-green-50', Venda: 'text-blue-600 bg-blue-50', Avaria: 'text-red-600 bg-red-50', ConsumoInterno: 'text-orange-600 bg-orange-50' }
+const typeColors: Record<string, string> = { Entrada: 'text-green-600 bg-green-50', Venda: 'text-blue-600 bg-blue-50', Avaria: 'text-red-600 bg-red-50', ConsumoInterno: 'text-orange-600 bg-orange-50', Saida: 'text-purple-600 bg-purple-50' }
 
 import { api } from '@/lib/api'
 
@@ -18,7 +18,7 @@ export default function StockMovementsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [filter, setFilter] = useState('')
-  const [form, setForm] = useState({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '' })
+  const [form, setForm] = useState({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '', destino: '' })
   const [error, setError] = useState('')
   const [eventFilter, setEventFilter] = useState('')
   const isMounted = useRef(true)
@@ -55,7 +55,7 @@ export default function StockMovementsPage() {
     e.preventDefault()
     setError('')
     const selected = products.find(p => p.id === form.productId)
-    const body: any = { productId: form.productId, type: form.type, quantity: parseFloat(form.quantity), description: form.description, eventId: form.eventId || undefined }
+    const body: any = { productId: form.productId, type: form.type, quantity: parseFloat(form.quantity), description: form.description, eventId: form.eventId || undefined, destino: form.destino || undefined }
     if (form.type === 'Entrada') {
       body.unitCost = selected?.unitCost
     } else {
@@ -70,7 +70,7 @@ export default function StockMovementsPage() {
     }
     setShowForm(false)
     setError('')
-    setForm({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '' })
+    setForm({ productId: '', type: 'Entrada', quantity: '1', description: '', eventId: '', destino: '' })
     load()
   }
 
@@ -97,6 +97,7 @@ export default function StockMovementsPage() {
             {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Custo Unit.</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">R$ {Number(selectedProduct.unitCost).toFixed(2)}</div></div>}
             {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Preço Unit.</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">R$ {Number(selectedProduct.salePrice).toFixed(2)}</div></div>}
             <div><label className="label">Descrição</label><input className="input-field" value={form.description} onChange={set('description')} /></div>
+            {form.type === 'Saida' && <div><label className="label">Destino <span className="text-red-500">*</span></label><input className="input-field" value={form.destino} onChange={set('destino')} placeholder="Ex: Doação, Descarte, Transferência" required /></div>}
             <div><label className="label">Evento {form.type !== 'Entrada' && <span className="text-red-500">*</span>}</label><select className="input-field" value={form.eventId} onChange={set('eventId')}>{form.type === 'Entrada' && <option value="">Nenhum</option>}{[...activeEvents, ...finishedEvents].map((ev: any) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}</select></div>
           </div>
           <div className="flex justify-end gap-3"><button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">Registrar</button></div>
@@ -117,13 +118,14 @@ export default function StockMovementsPage() {
       {loading ? <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
       : <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr className="border-b border-gray-200 text-left text-gray-500 font-medium">                <th className="pb-3 pr-4">Data</th><th className="pb-3 pr-4">Tipo</th><th className="pb-3 pr-4">Produto</th><th className="pb-3 pr-4">Evento</th><th className="pb-3 pr-4 text-right">Qtd</th><th className="pb-3 pr-4 text-right">Total</th></tr></thead>
+            <thead><tr className="border-b border-gray-200 text-left text-gray-500 font-medium">                <th className="pb-3 pr-4">Data</th><th className="pb-3 pr-4">Tipo</th><th className="pb-3 pr-4">Produto</th><th className="pb-3 pr-4">Evento</th><th className="pb-3 pr-4">Destino</th><th className="pb-3 pr-4 text-right">Qtd</th><th className="pb-3 pr-4 text-right">Total</th></tr></thead>
             <tbody>{movements.map((m: any) => (
               <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 pr-4 text-xs text-gray-500">{new Date(m.movedAt).toLocaleString('pt-BR')}</td>
                 <td className="py-3 pr-4"><span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${typeColors[m.type]}`}>{m.quantity > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}{m.type}</span></td>
                 <td className="py-3 pr-4 font-medium text-gray-900">{m.productName}</td>
                 <td className="py-3 pr-4">{m.eventName ? <span className="inline-flex items-center gap-1 text-xs text-purple-600"><Calendar className="w-3 h-3" />{m.eventName}</span> : <span className="text-xs text-gray-300">—</span>}</td>
+                <td className="py-3 pr-4 text-xs text-gray-600">{m.destino || <span className="text-gray-300">—</span>}</td>
                 <td className="py-3 pr-4 text-right font-mono">{m.quantity.toFixed(2)}</td>
                 <td className="py-3 pr-4 text-right font-medium">R$ {m.totalCost.toFixed(2)}</td>
               </tr>

@@ -14,6 +14,7 @@ enum MovementType {
   ConsumoInterno
   Ajuste
   Transferencia
+  Saida
 }
 
 enum InvoiceType {
@@ -152,6 +153,7 @@ model StockMovement {
   unitCost      Decimal      @default(0) @map("unit_cost") @db.Decimal(14,2)
   unitPrice     Decimal      @default(0) @map("unit_price") @db.Decimal(14,2)
   description   String?
+  destino       String?
   referenceId   String?      @map("reference_id")
   referenceType String?      @map("reference_type")
   eventId       String?      @map("event_id")
