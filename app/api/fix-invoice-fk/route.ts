@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getUserFromRequest } from '@/lib/auth-utils'
+import { getUserFromRequestAsync } from '@/lib/auth-utils'
 
 export async function POST(req: NextRequest) {
-  const payload = getUserFromRequest(req)
-  if (!payload || payload.role !== 'Administrador') {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
-  }
-
   try {
+    const payload = await getUserFromRequestAsync(req)
+    if (!payload || payload.role !== 'Administrador') {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
+    }
     const result: any = {}
 
     const tablesToCheck = ['invoices', 'stock_movements', 'audit_logs', 'invoice_items']

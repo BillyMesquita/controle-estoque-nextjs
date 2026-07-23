@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
+import { stripHtml } from '@/lib/sanitize'
 
 export async function GET(
   req: NextRequest,
@@ -45,6 +46,8 @@ export async function PUT(
 
     const previous = { name: product.name, unitCost: Number(product.unitCost), salePrice: Number(product.salePrice) }
     const data = await req.json()
+    if (data.name) data.name = stripHtml(data.name)
+    if (data.description) data.description = stripHtml(data.description)
 
     const updated = await prisma.product.update({
       where: { id },

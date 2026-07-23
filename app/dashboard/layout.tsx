@@ -8,8 +8,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) router.push('/login')
+    const loggedIn = localStorage.getItem('loggedIn')
+    if (!loggedIn) router.push('/login')
   }, [router])
 
   return <LayoutClient>{children}</LayoutClient>

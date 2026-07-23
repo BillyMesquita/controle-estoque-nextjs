@@ -21,9 +21,8 @@ export default function EditarProdutoPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).then(setCategories)
-    fetch('/api/suppliers', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).then(data => setSuppliers(data.items || data))
+    api('/api/categories').then(r => r.json()).then(setCategories)
+    api('/api/suppliers').then(r => r.json()).then(data => setSuppliers(data.items || data))
     api(`/api/products/${params.id}`).then(async r => {
       if (!r.ok) { router.push('/estoque'); return }
       const data = await r.json()
@@ -62,7 +61,7 @@ export default function EditarProdutoPage() {
         <div><label className="label">Unidade</label><select className="input-field" value={form.unit} onChange={set('unit')}><option value="UN">UN</option><option value="KG">KG</option><option value="LT">LT</option></select></div>
         <div><label className="label">Nome *</label><input className="input-field" value={form.name} onChange={set('name')} required /></div>
         <div><label className="label">Descrição</label><textarea className="input-field" rows={2} value={form.description} onChange={set('description')} /></div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="label">Categoria *</label>
             <select className="input-field" value={form.categoryId} onChange={set('categoryId')} required>
@@ -78,7 +77,7 @@ export default function EditarProdutoPage() {
             </select>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Custo Unitário (R$) *</label><input type="number" step="0.01" className="input-field" value={form.unitCost} onChange={set('unitCost')} required /></div>
           <div><label className="label">Preço de Venda (R$) *</label><input type="number" step="0.01" className="input-field" value={form.salePrice} onChange={set('salePrice')} required /></div>
         </div>

@@ -22,8 +22,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     let ignore = false
-    const token = localStorage.getItem('token')
-    fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } })
+    api('/api/categories')
       .then(r => r.json()).then(cats => {
         if (ignore) return
         setCategories(cats)
@@ -75,7 +74,7 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Estoque</h1><p className="text-sm text-gray-500 mt-1">{total} cadastrados</p></div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <select className="input-field w-auto text-sm" value={exportCategoryId} onChange={e => setExportCategoryId(e.target.value)}>
             <option value="">Todas as categorias</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -103,8 +102,8 @@ export default function ProductsPage() {
                 <td className="py-3 pr-4 text-right">{p.currentStock.toFixed(2)}</td>
                 <td className="py-3">
                   <div className="flex items-center gap-1">
-                    <Link href={`/estoque/${p.id}`} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-600"><Pencil className="w-4 h-4" /></Link>
-                    <button onClick={() => handleDelete(p.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                    <Link href={`/estoque/${p.id}`} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-600"><Pencil className="w-4 h-4" /></Link>
+                    <button onClick={() => handleDelete(p.id)} className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>

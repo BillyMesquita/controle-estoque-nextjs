@@ -17,7 +17,7 @@ export default function AuditPage() {
         const params = new URLSearchParams({ page: filter.page.toString(), pageSize: '50' })
         if (filter.module) params.set('module', filter.module)
         if (filter.action) params.set('action', filter.action)
-        const res = await fetch(`/api/audit-logs?${params}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+        const res = await fetch(`/api/audit-logs?${params}`)
         const data = await res.json()
         if (!ignore) setLogs(data.items)
         if (!ignore) setTotal(data.total)
@@ -33,7 +33,7 @@ export default function AuditPage() {
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Auditoria</h1><p className="text-sm text-gray-500 mt-1">{total} registros</p></div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <select className="input-field w-auto text-sm" value={filter.module} onChange={e => setFilter(prev => ({ ...prev, module: e.target.value }))}>
           <option value="">Todos módulos</option><option value="STOCK">Estoque</option><option value="INVOICE">Notas</option><option value="PRODUCT">Produtos</option>
         </select>

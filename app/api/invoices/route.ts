@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
+import { stripHtml } from '@/lib/sanitize'
 
 export async function GET(req: NextRequest) {
   const payload = await getUserFromRequestAsync(req)
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-  const { searchParams } = new URL(req.url)
+  try {
+    const { searchParams } = new URL(req.url)
   const filterPaymentStatus = searchParams.get('paymentStatus')
   const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
@@ -37,6 +39,9 @@ export async function GET(req: NextRequest) {
   if (filterPaymentStatus === 'Atrasado') items = items.filter(i => i.paymentStatus === 'Atrasado')
 
   return NextResponse.json({ items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao buscar notas' }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -51,6 +56,9 @@ export async function POST(req: NextRequest) {
     `).catch(() => {})
 
     const dto = await req.json()
+    dto.supplierName = stripHtml(dto.supplierName)
+    dto.customerName = stripHtml(dto.customerName)
+    if (dto.notes) dto.notes = stripHtml(dto.notes)
     const invoiceNumber = dto.invoiceNumber?.trim() || `NF-${(await prisma.invoice.count()) + 1}`
     if (!dto.supplierName || typeof dto.supplierName !== 'string' || !dto.supplierName.trim()) {
       return NextResponse.json({ error: 'Fornecedor é obrigatório' }, { status: 400 })

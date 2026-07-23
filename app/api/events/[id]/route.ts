@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
+import { stripHtml } from '@/lib/sanitize'
 
 export async function GET(
   req: NextRequest,
@@ -29,24 +30,31 @@ export async function PUT(
   if (payload.role === 'Operador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 
-  const event = await prisma.event.findUnique({ where: { id } })
-  if (!event) return NextResponse.json({ error: 'Evento não encontrado' }, { status: 404 })
+  try {
+    const event = await prisma.event.findUnique({ where: { id } })
+    if (!event) return NextResponse.json({ error: 'Evento não encontrado' }, { status: 404 })
 
-  const data = await req.json()
-  await prisma.event.update({
-    where: { id },
-    data: {
-      ...(data.name && { name: data.name }),
-      ...(data.description !== undefined && { description: data.description }),
-      ...(data.startDate && { startDate: new Date(data.startDate) }),
-      ...(data.endDate !== undefined && { endDate: data.endDate ? new Date(data.endDate) : null }),
-      ...(data.location !== undefined && { location: data.location }),
-      ...(data.status && { status: data.status }),
-      ...(data.isActive !== undefined && { isActive: data.isActive }),
-    },
-  })
+    const data = await req.json()
+    if (data.name) data.name = stripHtml(data.name)
+    if (data.description) data.description = stripHtml(data.description)
+    if (data.location) data.location = stripHtml(data.location)
+    await prisma.event.update({
+      where: { id },
+      data: {
+        ...(data.name && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.startDate && { startDate: new Date(data.startDate) }),
+        ...(data.endDate !== undefined && { endDate: data.endDate ? new Date(data.endDate) : null }),
+        ...(data.location !== undefined && { location: data.location }),
+        ...(data.status && { status: data.status }),
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+      },
+    })
 
-  return new NextResponse(null, { status: 204 })
+    return new NextResponse(null, { status: 204 })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao atualizar evento' }, { status: 500 })
+  }
 }
 
 export async function DELETE(

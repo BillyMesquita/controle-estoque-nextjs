@@ -29,8 +29,8 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error); return }
-      localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data))
+      localStorage.setItem('loggedIn', 'true')
       router.push('/dashboard')
     } catch { setError('Erro de conexão') }
     finally { setLoading(false) }

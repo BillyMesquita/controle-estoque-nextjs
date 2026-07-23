@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
+import { stripHtml } from '@/lib/sanitize'
 
 export async function GET(
   req: NextRequest,
@@ -35,6 +36,12 @@ export async function PUT(
     if (!supplier) return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
 
     const data = await req.json()
+    if (data.name) data.name = stripHtml(data.name)
+    if (data.contact) data.contact = stripHtml(data.contact)
+    if (data.document) data.document = stripHtml(data.document)
+    if (data.phone) data.phone = stripHtml(data.phone)
+    if (data.email) data.email = stripHtml(data.email)
+    if (data.address) data.address = stripHtml(data.address)
     await prisma.supplier.update({
       where: { id },
       data: {
@@ -68,17 +75,21 @@ export async function DELETE(
   if (!payload || payload.role !== 'Administrador') return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   const { id } = await params
 
-  const supplier = await prisma.supplier.findUnique({ where: { id } })
-  if (!supplier) return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
+  try {
+    const supplier = await prisma.supplier.findUnique({ where: { id } })
+    if (!supplier) return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
 
-  await prisma.supplier.update({ where: { id }, data: { isActive: false } })
+    await prisma.supplier.update({ where: { id }, data: { isActive: false } })
 
-  await createAuditLog({
-    userId: payload.userId, action: 'Excluir', entity: 'Supplier',
-    entityId: id, module: 'SUPPLIER',
-    description: `Fornecedor ${supplier.name} excluído`,
-    previousValues: JSON.stringify({ name: supplier.name }),
-  })
+    await createAuditLog({
+      userId: payload.userId, action: 'Excluir', entity: 'Supplier',
+      entityId: id, module: 'SUPPLIER',
+      description: `Fornecedor ${supplier.name} excluído`,
+      previousValues: JSON.stringify({ name: supplier.name }),
+    })
 
-  return new NextResponse(null, { status: 204 })
+    return new NextResponse(null, { status: 204 })
+  } catch {
+    return NextResponse.json({ error: 'Erro ao excluir fornecedor' }, { status: 500 })
+  }
 }

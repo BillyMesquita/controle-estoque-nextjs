@@ -90,7 +90,7 @@ export default function FinancialPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {metrics.map((m: any) => {
               const Icon = m.icon
               return <div key={m.label} className="card"><div className="flex items-center gap-3"><div className={`w-10 h-10 rounded-xl flex items-center justify-center ${m.color}`}><Icon className="w-5 h-5" /></div><div><p className="text-xs text-gray-500 font-medium">{m.label}</p><p className="text-lg font-bold text-gray-900">{m.value}</p></div></div></div>

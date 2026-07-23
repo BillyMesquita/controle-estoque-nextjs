@@ -35,7 +35,7 @@ export default function UsuariosPage() {
         <div><h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Usuários</h1><p className="text-sm text-gray-500 mt-1">{users.length} usuários</p></div>
         <Link href="/usuarios/novo" className="btn-primary"><Plus className="w-4 h-4" /> Novo Usuário</Link>
       </div>
-      <div className="card">
+      <div className="card overflow-x-auto">
         <table className="w-full">
           <thead><tr className="border-b border-gray-200 dark:border-gray-700 text-left text-gray-500 font-medium text-sm">
             <th className="pb-3 pr-4">Nome</th><th className="pb-3 pr-4">Usuário</th><th className="pb-3 pr-4">Função</th><th className="pb-3 pr-4">Status</th><th className="pb-3 pr-4">Ações</th>
@@ -57,8 +57,8 @@ export default function UsuariosPage() {
                 </td>
                 <td className="py-3">
                   <div className="flex items-center gap-2">
-                    <Link href={`/usuarios/${u.id}`} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><Pencil className="w-4 h-4 text-gray-500" /></Link>
-                    <button onClick={() => handleDelete(u.id)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><Trash2 className="w-4 h-4 text-red-500" /></button>
+                    <Link href={`/usuarios/${u.id}`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><Pencil className="w-4 h-4 text-gray-500" /></Link>
+                    <button onClick={() => handleDelete(u.id)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><Trash2 className="w-4 h-4 text-red-500" /></button>
                   </div>
                 </td>
               </tr>

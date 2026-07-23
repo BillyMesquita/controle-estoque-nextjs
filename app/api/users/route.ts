@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
-import { hashPassword } from '@/lib/auth-utils'
+import { hashPasswordAsync } from '@/lib/auth-utils'
+import { stripHtml } from '@/lib/sanitize'
 
 export async function GET(req: NextRequest) {
   const payload = await getUserFromRequestAsync(req)
@@ -24,6 +25,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = await req.json()
+    data.name = stripHtml(data.name)
+    data.username = stripHtml(data.username)
     if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
       return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 })
     }
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
       data: {
         name: data.name,
         username: data.username,
-        passwordHash: hashPassword(data.password),
+        passwordHash: await hashPasswordAsync(data.password),
         role: data.role || 'Operador',
         permissions,
       },

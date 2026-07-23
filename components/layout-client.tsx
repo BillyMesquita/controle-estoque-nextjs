@@ -35,9 +35,10 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
     } catch {}
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
     localStorage.removeItem('user')
+    localStorage.removeItem('loggedIn')
     router.push('/login')
   }
 
@@ -80,17 +81,17 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
               <p className="text-xs text-gray-500 dark:text-gray-400">{user?.role}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+          <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
             <LogOut className="w-4 h-4" /> Sair
           </button>
         </div>
       </aside>
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex items-center px-4 lg:px-6">
-          <button className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          <button className="lg:hidden p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <button className="ml-auto p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Alternar tema">
+          <button className="ml-auto p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Alternar tema">
             {mounted && (theme === 'dark' ? <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <Moon className="w-5 h-5 text-gray-600" />)}
           </button>
         </header>

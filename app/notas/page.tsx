@@ -74,9 +74,9 @@ export default function InvoicesPage() {
             </div>
             <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
               {inv.paymentStatus !== 'Pago' && inv.paymentStatus !== 'Cancelado' && (
-                <button onClick={() => handlePay(inv.id)} className="btn-primary text-xs px-3 py-1.5"><DollarSign className="w-3 h-3" /> Pagar</button>
+                <button onClick={() => handlePay(inv.id)} className="btn-primary text-xs px-3 py-2"><DollarSign className="w-3 h-3" /> Pagar</button>
               )}
-              <button onClick={() => handleDelete(inv.id)} className="btn-secondary text-xs px-3 py-1.5 text-red-600 border-red-200"><Trash2 className="w-3 h-3" /> Cancelar</button>
+              <button onClick={() => handleDelete(inv.id)} className="btn-secondary text-xs px-3 py-2 text-red-600 border-red-200"><Trash2 className="w-3 h-3" /> Cancelar</button>
             </div>
           </div>
         ))}

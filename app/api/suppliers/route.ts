@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
 import { createAuditLog } from '@/lib/audit'
+import { stripHtml } from '@/lib/sanitize'
 
 export async function GET(req: NextRequest) {
   const payload = await getUserFromRequestAsync(req)
@@ -29,6 +30,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = await req.json()
+    data.name = stripHtml(data.name)
+    data.contact = stripHtml(data.contact)
+    data.document = stripHtml(data.document)
+    data.phone = stripHtml(data.phone)
+    data.email = stripHtml(data.email)
+    data.address = stripHtml(data.address)
     if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
       return NextResponse.json({ error: 'Nome do fornecedor é obrigatório' }, { status: 400 })
     }

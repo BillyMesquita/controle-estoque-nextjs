@@ -119,7 +119,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            <Link href={`/eventos/${events.next.id}`} className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+            <Link href={`/eventos/${events.next.id}`} className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
               Ver evento <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

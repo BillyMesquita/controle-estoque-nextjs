@@ -58,7 +58,7 @@ export default function EditarFornecedorPage() {
           <label className="label-field">Nome *</label>
           <input name="name" className="input-field" value={form.name} onChange={handleChange} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="label-field">CNPJ/CPF</label>
             <input name="document" className="input-field" value={form.document} onChange={handleChange} />
@@ -68,7 +68,7 @@ export default function EditarFornecedorPage() {
             <input name="contact" className="input-field" value={form.contact} onChange={handleChange} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="label-field">Telefone</label>
             <input name="phone" className="input-field" value={form.phone} onChange={handleChange} />

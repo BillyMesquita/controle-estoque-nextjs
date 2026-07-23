@@ -55,11 +55,11 @@ export default function NovoUsuarioPage() {
           <p className="text-sm text-gray-500">Defina as credenciais e permissões do usuário</p>
         </div>
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Nome *</label><input name="name" className="input-field" value={form.name} onChange={handleChange} required /></div>
           <div><label className="label">Usuário *</label><input name="username" className="input-field" value={form.username} onChange={handleChange} required /></div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Senha *</label><input name="password" type="password" className="input-field" value={form.password} onChange={handleChange} required /></div>
           <div><label className="label">Função</label><select name="role" className="input-field" value={form.role} onChange={handleChange}>
             <option value="Operador">Operador</option><option value="Financeiro">Financeiro</option><option value="Administrador">Administrador</option>
@@ -67,7 +67,7 @@ export default function NovoUsuarioPage() {
         </div>
         <div className="pt-2">
           <label className="label mb-3">Permissões de Acesso (deixe vazio para acesso total)</label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {menuItems.map(item => (
               <label key={item.to} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
                 <input type="checkbox" checked={permissions.includes(item.to)} onChange={() => togglePermission(item.to)} className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />

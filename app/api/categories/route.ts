@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
+import { stripHtml } from '@/lib/sanitize'
 
 export async function GET(req: NextRequest) {
   const payload = await getUserFromRequestAsync(req)
@@ -22,7 +23,9 @@ export async function POST(req: NextRequest) {
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {
-    const { name, description } = await req.json()
+    let { name, description } = await req.json()
+    name = stripHtml(name)
+    if (description) description = stripHtml(description)
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 })
     }

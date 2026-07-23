@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromRequestAsync } from '@/lib/auth-utils'
-import { hashPassword } from '@/lib/auth-utils'
+import { hashPasswordAsync } from '@/lib/auth-utils'
+import { stripHtml } from '@/lib/sanitize'
 
 export async function GET(
   req: NextRequest,
@@ -36,10 +37,10 @@ export async function PUT(
     const data = await req.json()
 
     const updateData: any = {}
-    if (data.name) updateData.name = data.name
-    if (data.username) updateData.username = data.username
+    if (data.name) updateData.name = stripHtml(data.name as string)
+    if (data.username) updateData.username = stripHtml(data.username as string)
     if (data.role) updateData.role = data.role
-    if (data.password) updateData.passwordHash = hashPassword(data.password)
+    if (data.password) updateData.passwordHash = await hashPasswordAsync(data.password)
     if (data.permissions !== undefined) updateData.permissions = data.permissions?.length ? JSON.stringify(data.permissions) : null
     if (data.isActive !== undefined) updateData.isActive = data.isActive
 

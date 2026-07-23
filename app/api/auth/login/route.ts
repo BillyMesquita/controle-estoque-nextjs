@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyPassword, signToken } from '@/lib/auth-utils'
+import { verifyPasswordAsync, signToken, setTokenCookie } from '@/lib/auth-utils'
 
 const rateLimit = new Map<string, { count: number; resetAt: number }>()
 const MAX_ATTEMPTS = 5
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const password = body.password
 
     const user = await prisma.user.findUnique({ where: { username } })
-    if (!user || !verifyPassword(password, user.passwordHash)) {
+    if (!user || !(await verifyPasswordAsync(password, user.passwordHash))) {
       return NextResponse.json({ error: 'Usuário ou senha inválidos' }, { status: 401 })
     }
     if (!user.isActive) {
@@ -41,7 +41,9 @@ export async function POST(req: NextRequest) {
     }
     const permissions = user.permissions ? JSON.parse(user.permissions) : null
     const token = signToken({ userId: user.id, username: user.username, name: user.name, role: user.role, permissions })
-    return NextResponse.json({ token, name: user.name, username: user.username, role: user.role, userId: user.id, permissions })
+    const response = NextResponse.json({ name: user.name, username: user.username, role: user.role, userId: user.id, permissions })
+    setTokenCookie(response, token)
+    return response
   } catch {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
