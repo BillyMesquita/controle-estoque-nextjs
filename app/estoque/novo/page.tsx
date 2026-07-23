@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save } from 'lucide-react'
+import { api } from '@/lib/api'
 
 interface Category { id: string; name: string }
 interface Supplier { id: string; name: string }
@@ -17,11 +18,8 @@ export default function NewProductPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json()).then(setCategories)
-    fetch('/api/suppliers', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json()).then(data => setSuppliers(data.items || data))
+    api('/api/categories').then(r => r.json()).then(setCategories)
+    api('/api/suppliers').then(r => r.json()).then(data => setSuppliers(data.items || data))
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,8 +27,8 @@ export default function NewProductPage() {
     if (!form.categoryId) { setError('Selecione uma categoria'); return }
     setSaving(true)
     try {
-      const res = await fetch('/api/products', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+      const res = await api('/api/products', {
+        method: 'POST',
         body: JSON.stringify({ ...form, unitCost: parseFloat(form.unitCost), salePrice: parseFloat(form.salePrice), currentStock: 0 }),
       })
       if (!res.ok) { const d = await res.json(); setError(d.error); return }
