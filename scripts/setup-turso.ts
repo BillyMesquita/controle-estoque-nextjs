@@ -48,7 +48,11 @@ async function main() {
     console.log('✓ Categorias criadas')
   }
 
-  const adminPass = process.env.DEFAULT_ADMIN_PASS || 'REMOVIDO'
+  const adminPass = process.env.DEFAULT_ADMIN_PASS
+  if (!adminPass) {
+    console.error('DEFAULT_ADMIN_PASS não definida')
+    process.exit(1)
+  }
   const adminHash = bcrypt.hashSync(adminPass, 12)
 
   const existing = await turso.execute("SELECT id FROM users WHERE username = 'adminbilly'")

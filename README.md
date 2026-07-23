@@ -91,8 +91,7 @@ e roda automaticamente no `postinstall` e no `build`.
 | `DATABASE_URL` | Sim | URL do banco (SQLite/Turso/PostgreSQL) |
 | `DATABASE_AUTH_TOKEN` | Turso | Token de autenticação do Turso |
 | `JWT_SECRET` | Sim | Chave secreta para assinar JWTs |
-| `DEFAULT_ADMIN_PASS` | Não | Senha do admin no seed (default: `REMOVIDO`) |
-| `DEFAULT_OPER_PASS` | Não | Senha do operador no seed (default: `REMOVIDO`) |
+| `DEFAULT_ADMIN_PASS` | Sim | Senha do admin para seed / setup |
 
 > Sem `JWT_SECRET` o sistema **não inicializa** — erro lançado em `lib/auth-utils.ts`.
 
@@ -105,7 +104,7 @@ npm run db:setup       # cria SQLite + seed (admin / operador)
 npm run dev            # http://localhost:3000
 ```
 
-**Credencial padrão (dev):** `adminbilly` / `REMOVIDO`
+**Credencial:** `adminbilly` (senha definida via `DEFAULT_ADMIN_PASS`)
 
 ## Deploy (Vercel + Turso)
 

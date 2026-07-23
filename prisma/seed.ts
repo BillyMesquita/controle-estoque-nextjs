@@ -3,17 +3,20 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
-const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'REMOVIDO'
-
 async function main() {
-  const userCount = await prisma.user.count()
+  const adminPass = process.env.DEFAULT_ADMIN_PASS
+  if (!adminPass) {
+    console.error('DEFAULT_ADMIN_PASS não definida. Configure a variável de ambiente.')
+    process.exit(1)
+  }
 
+  const userCount = await prisma.user.count()
   if (userCount === 0) {
-    const hash = await bcrypt.hash(DEFAULT_ADMIN_PASS, 12)
+    const hash = await bcrypt.hash(adminPass, 12)
     await prisma.user.create({
       data: { name: 'Administrador', username: 'adminbilly', passwordHash: hash, role: 'Administrador' },
     })
-    console.log('✓ Usuário adminbilly criado')
+    console.log('✓ Usuário admin criado')
   }
 
   const catCount = await prisma.category.count()

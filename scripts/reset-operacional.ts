@@ -1,13 +1,15 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
-
 async function main() {
+  const adminPass = process.env.DEFAULT_ADMIN_PASS
+  if (!adminPass) {
+    console.error('DEFAULT_ADMIN_PASS não definida. Configure a variável de ambiente.')
+    process.exit(1)
+  }
+
   console.log('=== Reset para Produção ===')
   console.log('Mantendo: Categorias, Configurações do Sistema')
-  console.log('Limpando: Produtos, Movimentações, Notas, Eventos, Fornecedores, Auditoria')
-  console.log('Recriando: Apenas adminbilly (Administrador)')
 
   const cleanups = [
     { table: 'audit_logs', label: 'Logs de Auditoria' },
@@ -30,7 +32,6 @@ async function main() {
     }
   }
 
-  const adminPass = process.env.DEFAULT_ADMIN_PASS || 'REMOVIDO'
   const hash = await bcrypt.hash(adminPass, 12)
 
   await prisma.$executeRawUnsafe(`DELETE FROM users WHERE username != 'adminbilly'`)
@@ -39,10 +40,9 @@ async function main() {
     update: { passwordHash: hash, role: 'Administrador', isActive: true },
     create: { name: 'Administrador', username: 'adminbilly', passwordHash: hash, role: 'Administrador' },
   })
-  console.log('  ✓ Usuário adminbilly criado/atualizado')
+  console.log('  ✓ Usuário adminbilly atualizado')
 
   console.log('\n=== Reset concluído! ===')
-  console.log('Credenciais: adminbilly / REMOVIDO')
 }
 
 main()

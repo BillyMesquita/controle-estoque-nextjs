@@ -14,21 +14,18 @@ export async function POST(req: NextRequest) {
   try {
     await prisma.$connect()
 
-    const adminExists = await prisma.user.findUnique({ where: { username: 'admin' } })
-    if (!adminExists) {
-      const adminPass = process.env.DEFAULT_ADMIN_PASS || 'REMOVIDO'
-      const operPass = process.env.DEFAULT_OPER_PASS || 'REMOVIDO'
-      await prisma.user.createMany({
-        data: [
-          { name: 'Admin', username: 'admin', passwordHash: bcrypt.hashSync(adminPass, 10), role: 'Administrador' },
-          { name: 'Operador', username: 'operador', passwordHash: bcrypt.hashSync(operPass, 10), role: 'Operador' },
-        ],
-      })
+    if (!process.env.DEFAULT_ADMIN_PASS) {
+      return NextResponse.json({ error: 'DEFAULT_ADMIN_PASS não configurada' }, { status: 500 })
+    }
 
-      await prisma.systemConfig.createMany({
-        data: [
-          { key: 'company_name', value: 'Mercado Cultural', description: 'Nome da empresa' },
-        ],
+    const adminExists = await prisma.user.findUnique({ where: { username: 'adminbilly' } })
+    if (!adminExists) {
+      await prisma.user.create({
+        data: {
+          name: 'Administrador', username: 'adminbilly',
+          passwordHash: bcrypt.hashSync(process.env.DEFAULT_ADMIN_PASS, 12),
+          role: 'Administrador',
+        },
       })
     }
 
