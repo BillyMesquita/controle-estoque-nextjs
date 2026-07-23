@@ -91,10 +91,9 @@ export default function StockMovementsPage() {
           <h3 className="font-semibold">Registrar Movimentação</h3>
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div><label className="label">Produto</label><select className="input-field" value={form.productId} onChange={set('productId')} required><option value="">Selecione</option>{products.map((p: any) => <option key={p.id} value={p.id}>{p.name} (Estoque: {Number(p.currentStock).toFixed(2)})</option>)}</select></div>
+            <div><label className="label">Produto</label><select className="input-field" value={form.productId} onChange={set('productId')} required><option value="">Selecione</option>{products.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
             <div><label className="label">Tipo</label><select className="input-field" value={form.type} onChange={set('type')}>{Object.keys(typeColors).map(t => <option key={t} value={t}>{t}</option>)}</select></div>
             <div><label className="label">Quantidade</label><input type="number" step="0.01" className="input-field" value={form.quantity} onChange={set('quantity')} required /></div>
-            {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Estoque Atual</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">{Number(selectedProduct.currentStock).toFixed(2)}</div></div>}
             {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Custo Unit.</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">R$ {Number(selectedProduct.unitCost).toFixed(2)}</div></div>}
             {form.type !== 'Entrada' && selectedProduct && <div><label className="label">Preço Unit.</label><div className="input-field bg-gray-50 text-gray-500 flex items-center">R$ {Number(selectedProduct.salePrice).toFixed(2)}</div></div>}
             <div><label className="label">Descrição</label><input className="input-field" value={form.description} onChange={set('description')} /></div>
