@@ -22,9 +22,11 @@ async function main() {
     'event_costs', 'events', 'products', 'suppliers',
   ]
 
+  const allowed = new Set(cleanups)
   for (const table of cleanups) {
+    if (!allowed.has(table)) continue
     try {
-      const r = await db.execute(`DELETE FROM ${table}`)
+      const r = await db.execute({ sql: `DELETE FROM "${table}"`, args: [] })
       console.log(`  ✓ ${table}: ${r.rowsAffected} registros removidos`)
     } catch {
       console.log(`  ~ ${table}: tabela não encontrada`)

@@ -11,6 +11,7 @@ export default function FinancialPage() {
   const [period, setPeriod] = useState('1w')
   const [events, setEvents] = useState<any[]>([])
   const [selectedEventId, setSelectedEventId] = useState('')
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     let ignore = false
@@ -71,7 +72,7 @@ export default function FinancialPage() {
           <select className="input-field w-auto" value={period} onChange={e => setPeriod(e.target.value)}>
             <option value="1w">Última semana</option><option value="1">Último mês</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option>
           </select>
-          <button disabled={!selectedEventId} onClick={async () => { const end = new Date(); const start = calcStartDate(period); const params = new URLSearchParams({ startDate: start.toISOString().split('T')[0], endDate: end.toISOString().split('T')[0], eventId: selectedEventId }); const res = await api(`/api/financial/report?${params}`); const html = await res.text(); const blob = new Blob([html], { type: 'text/html' }); window.open(URL.createObjectURL(blob), '_blank') }}            className={`text-sm flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium transition-colors ${selectedEventId ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'}`}><FileText className="w-4 h-4" /> Exportar Relatório</button>
+          <button disabled={!selectedEventId || exporting} onClick={async () => { if (exporting) return; setExporting(true); try { const end = new Date(); const start = calcStartDate(period); const params = new URLSearchParams({ startDate: start.toISOString().split('T')[0], endDate: end.toISOString().split('T')[0], eventId: selectedEventId }); const res = await api(`/api/financial/report?${params}`); const html = await res.text(); const blob = new Blob([html], { type: 'text/html' }); window.open(URL.createObjectURL(blob), '_blank') } finally { setExporting(false) } }}            className={`text-sm flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium transition-colors ${selectedEventId && !exporting ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'}`}>{exporting ? 'Exportando...' : <><FileText className="w-4 h-4" /> Exportar Relatório</>}</button>
         </div>
       </div>
 

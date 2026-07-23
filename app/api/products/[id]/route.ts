@@ -73,7 +73,7 @@ export async function PUT(
 
     return new NextResponse(null, { status: 204 })
   } catch {
-    return NextResponse.json({ error: 'Erro ao excluir produto' }, { status: 500 })
+    return NextResponse.json({ error: 'Erro ao atualizar produto' }, { status: 500 })
   }
 }
 

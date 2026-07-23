@@ -54,10 +54,10 @@ export async function POST(req: NextRequest) {
     })
 
     try {
-      await prisma.$executeRawUnsafe(`
+      await prisma.$executeRaw`
         INSERT OR IGNORE INTO users_old (id, name, username, password_hash, role, permissions, is_active, created_at, updated_at)
-        SELECT id, name, username, password_hash, role, permissions, is_active, created_at, updated_at FROM users WHERE id = '${user.id}'
-      `)
+        SELECT id, name, username, password_hash, role, permissions, is_active, created_at, updated_at FROM users WHERE id = ${user.id}
+      `
     } catch { /* users_old may not exist */ }
 
     return NextResponse.json(user, { status: 201 })

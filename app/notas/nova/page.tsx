@@ -21,7 +21,7 @@ export default function NewInvoicePage() {
     try {
       const res = await api('/api/invoices', {
         method: 'POST',
-        body: JSON.stringify({ ...form, items: [] }),
+        body: JSON.stringify(form),
       })
       if (!res.ok) { const d = await res.json(); setError(d.error); return }
       router.push('/notas')

@@ -49,11 +49,10 @@ export async function POST(req: NextRequest) {
   if (!payload) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   try {
-    await prisma.$executeRawUnsafe(`ALTER TABLE invoices ADD COLUMN supplier_name TEXT`).catch(() => {})
-    await prisma.$executeRawUnsafe(`
+    await prisma.$executeRaw`
       INSERT OR IGNORE INTO users_old (id, name, username, password_hash, role, permissions, is_active, created_at, updated_at)
-      SELECT id, name, username, password_hash, role, permissions, is_active, created_at, updated_at FROM users WHERE id = '${payload.userId}'
-    `).catch(() => {})
+      SELECT id, name, username, password_hash, role, permissions, is_active, created_at, updated_at FROM users WHERE id = ${payload.userId}
+    `.catch(() => {})
 
     const dto = await req.json()
     dto.supplierName = stripHtml(dto.supplierName)

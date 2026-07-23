@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Shield } from 'lucide-react'
+import { api } from '@/lib/api'
 
 export default function AuditPage() {
   const [logs, setLogs] = useState<any[]>([])
@@ -17,7 +18,7 @@ export default function AuditPage() {
         const params = new URLSearchParams({ page: filter.page.toString(), pageSize: '50' })
         if (filter.module) params.set('module', filter.module)
         if (filter.action) params.set('action', filter.action)
-        const res = await fetch(`/api/audit-logs?${params}`)
+        const res = await api(`/api/audit-logs?${params}`)
         const data = await res.json()
         if (!ignore) setLogs(data.items)
         if (!ignore) setTotal(data.total)
@@ -49,7 +50,7 @@ export default function AuditPage() {
             <tbody>{logs.map((log: any) => (
               <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 pr-4 text-xs text-gray-500 whitespace-nowrap">{new Date(log.createdAt).toLocaleString('pt-BR')}</td>
-                <td className="py-3 pr-4"><p className="font-medium text-gray-900">{log.userName}</p><p className="text-xs text-gray-400">{log.userUsername || log.userEmail}</p></td>
+                <td className="py-3 pr-4"><p className="font-medium text-gray-900">{log.userName}</p><p className="text-xs text-gray-400">{log.userUsername}</p></td>
                 <td className="py-3 pr-4"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${log.action === 'Criar' ? 'bg-green-50 text-green-600' : log.action === 'Atualizar' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>{log.action}</span></td>
                 <td className="py-3 pr-4 text-gray-700">{log.entity}</td>
                 <td className="py-3 pr-4"><span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{log.module}</span></td>

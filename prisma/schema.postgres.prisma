@@ -38,6 +38,7 @@ enum InvoiceStatus {
 enum UserRole {
   Operador
   Administrador
+  Financeiro
 }
 
 model User {
