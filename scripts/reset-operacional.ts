@@ -1,6 +1,6 @@
 import { createClient } from '@libsql/client'
-import crypto from 'crypto'
-import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
+import * as bcrypt from 'bcryptjs'
 
 async function main() {
   const url = process.env.DATABASE_URL
@@ -43,7 +43,7 @@ async function main() {
   if (existing.rows.length === 0) {
     await db.execute({
       sql: "INSERT INTO users (id, name, username, password_hash, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
-      args: [crypto.randomUUID(), 'Administrador', 'adminbilly', hash, 'Administrador'],
+      args: [randomUUID(), 'Administrador', 'adminbilly', hash, 'Administrador'],
     })
     console.log('  ✓ Usuário adminbilly criado')
   } else {
