@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     if (isNaN(qtyNum) || qtyNum <= 0) {
       return NextResponse.json({ error: 'Quantidade deve ser um número positivo' }, { status: 400 })
     }
-    if (dto.type !== 'Entrada' && !dto.eventId) {
+    if (dto.type !== 'Entrada' && dto.type !== 'Saida' && !dto.eventId) {
       return NextResponse.json({ error: 'Evento é obrigatório para este tipo de movimentação' }, { status: 400 })
     }
     if (dto.type === 'Saida' && !dto.destino) {
