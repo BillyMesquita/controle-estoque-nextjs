@@ -19,9 +19,9 @@ export default function AuditPage() {
         if (filter.module) params.set('module', filter.module)
         if (filter.action) params.set('action', filter.action)
         const res = await api(`/api/audit-logs?${params}`)
+        if (!res.ok) { if (!ignore) { setLogs([]); setTotal(0) }; return }
         const data = await res.json()
-        if (!ignore) setLogs(data.items)
-        if (!ignore) setTotal(data.total)
+        if (!ignore) { setLogs(data.items || []); setTotal(data.total || 0) }
       } catch { /* ignore */ }
       finally { if (!ignore) setLoading(false) }
     }

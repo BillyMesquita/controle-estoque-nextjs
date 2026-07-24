@@ -39,11 +39,12 @@ export default function ProductsPage() {
     setLoading(true)
     try {
       const res = await api(`/api/products?page=${page}&pageSize=50`)
+      if (!res.ok) { if (isMounted.current) { setProducts([]); setTotal(0); setTotalPages(1) }; return }
       const data = await res.json()
       if (!isMounted.current) return
-      setProducts(data.items)
-      setTotal(data.total)
-      setTotalPages(data.totalPages)
+      setProducts(data.items || [])
+      setTotal(data.total || 0)
+      setTotalPages(data.totalPages || 1)
     } catch { /* ignore */ }
     finally { if (isMounted.current) setLoading(false) }
   }, [page])
