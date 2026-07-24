@@ -11,5 +11,21 @@ export async function createAuditLog(params: {
   newValues?: string
   ipAddress?: string
 }) {
-  await prisma.auditLog.create({ data: params })
+  try {
+    await prisma.auditLog.create({
+      data: {
+        user: { connect: { id: params.userId } },
+        action: params.action,
+        entity: params.entity,
+        entityId: params.entityId,
+        module: params.module,
+        ...(params.description && { description: params.description }),
+        ...(params.previousValues && { previousValues: params.previousValues }),
+        ...(params.newValues && { newValues: params.newValues }),
+        ...(params.ipAddress && { ipAddress: params.ipAddress }),
+      },
+    })
+  } catch (e) {
+    console.error('Erro ao criar audit log:', e)
+  }
 }
